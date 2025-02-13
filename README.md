@@ -37,4 +37,4 @@ docker exec -it <container name> bash -l
 Once in the database container, you can get a MySQL CLI in the usual way
 
 mysql -uroot -p<password> 
-this is ride sharing app
+this is ride sharing app   
