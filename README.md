@@ -40,6 +40,7 @@ npm install
 docker-compose up
 
 #setup the database;
+create a new ridesharingapp database
 copy the code of ridesharingapp.sql
 in 127.0.0.1:8081 php myadmin
 with username=root and password=password
