@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 info!!
 .dockerignore: Specifies files to exclude from Docker builds.
 .env: holds environment variables database credentials.
