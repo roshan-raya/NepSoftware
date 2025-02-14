@@ -6,6 +6,7 @@ WORKDIR /src
 
 # Copy across project configuration information
 # Install application dependencies
+COPY package*.json /src/
 
 # Ask npm to install the dependencies
 RUN npm install -g supervisor && npm install && npm install supervisor
