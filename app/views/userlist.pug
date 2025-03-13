@@ -1,0 +1,11 @@
+extends layout.pug
+
+block content
+  section.user-list
+    h2.section-title User List
+    p Here is the list of all registered users:
+    ul.user-list-items
+      each user in users
+        li.user-item
+          p.user-name= user.name
+          p.user-email= user.email
