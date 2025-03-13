@@ -1,0 +1,14 @@
+extends layout.pug
+
+block content
+  section.user-list
+    .container
+      h2.section-title User List
+      p Here is the list of all registered users:
+      ul.user-list-items
+        each user in users
+          li.user-item
+            .user-info
+              p.user-namegit push origin master3
+              = user.name
+              p.user-email= user.email
