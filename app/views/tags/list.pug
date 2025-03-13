@@ -1,0 +1,12 @@
+extends ../layouts/main
+
+block content
+  h1 All Tags
+  
+  .tags-container
+    each tag in tags
+      .tag-card
+        h3 #{tag.name}
+        if tag.description
+          p #{tag.description}
+        a.btn(href=`/rides?tag=${tag.id}`) View Rides 

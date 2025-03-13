@@ -1,0 +1,52 @@
+extends ../layouts/main
+
+block content
+  .ride-detail-container
+    h1 Ride from #{ride.origin} to #{ride.destination}
+    
+    .ride-info
+      .ride-primary-info
+        p
+          strong Departure Time: 
+          | #{new Date(ride.departure_time).toLocaleString()}
+        p
+          strong Available Seats: 
+          | #{ride.available_seats}
+        p
+          strong Price: 
+          | $#{ride.price}
+        
+        if tags && tags.length > 0
+          .ride-tags
+            h3 Tags
+            .tag-filters
+              each tag in tags
+                a.tag-filter(href=`/rides?tag=${tag.id}`) #{tag.name}
+      
+      .driver-info
+        h2 Driver Information
+        .driver-profile
+          .driver-avatar #{ride.driver_name.charAt(0)}
+          h3 #{ride.driver_name}
+          p
+            strong Email: 
+            | #{ride.driver_email}
+          if ride.driver_phone
+            p
+              strong Phone: 
+              | #{ride.driver_phone}
+    
+    if bookings && bookings.length > 0
+      .ride-passengers
+        h2 Passengers
+        .passengers-list
+          each booking in bookings
+            .passenger
+              .passenger-avatar #{booking.passenger_name.charAt(0)}
+              .passenger-info
+                span.passenger-name #{booking.passenger_name}
+                span.seats-booked Seats: #{booking.seats_booked}
+    
+    .ride-actions
+      a.btn.primary-btn(href='#') Request to Join
+      a.btn(href='/rides') Back to Rides 
