@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1.mb-4 Users List
+  
+  .row
+    each user in users
+      .col-md-4.mb-4
+        .card
+          if user.profile_photo
+            img.card-img-top(src=`/images/profiles/${user.profile_photo}` alt=`${user.name}'s profile photo`)
+          else
+            img.card-img-top(src='/images/profiles/default.jpg' alt='Default profile photo')
+          .card-body
+            h5.card-title= user.name
+            p.card-text= user.email
+            a.btn.btn-primary(href=`/users/${user.id}`) View Profile
+    else
+      .col-12
+        .alert.alert-info No users found. 

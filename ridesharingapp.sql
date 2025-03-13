@@ -1,81 +1,54 @@
--- Create the users table
-CREATE TABLE users (
+
+
+-- Table for Users (students and staff of University of Roehampton)
+CREATE TABLE Users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(15),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    email VARCHAR(100) UNIQUE NOT NULL CHECK (email LIKE '%@roehampton.ac.uk'),
+    profile_photo VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email (email) -- Index for faster email lookups
 );
 
--- Create the rides table
-CREATE TABLE rides (
+-- Table for Rides (ride listings posted by drivers)
+CREATE TABLE Rides (
     id INT AUTO_INCREMENT PRIMARY KEY,
     driver_id INT NOT NULL,
-    origin VARCHAR(255) NOT NULL,
-    destination VARCHAR(255) NOT NULL,
     departure_time DATETIME NOT NULL,
-    available_seats INT NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
+    pickup_location VARCHAR(255) NOT NULL,
+    seats_available INT NOT NULL CHECK (seats_available >= 0),
+    tags VARCHAR(100), -- Comma-separated tags (e.g., "Early Morning,Evening")
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (driver_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (driver_id) REFERENCES Users(id) ON DELETE CASCADE,
+    INDEX idx_driver_id (driver_id) -- Index for ride lookups by driver
 );
 
--- Create the bookings table
-CREATE TABLE bookings (
+-- Table for Ride Requests (passengers requesting to join rides)
+CREATE TABLE Ride_Requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ride_id INT NOT NULL,
-    user_id INT NOT NULL,
-    booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    seats_booked INT NOT NULL,
-    total_price DECIMAL(10, 2) NOT NULL,
-    FOREIGN KEY (ride_id) REFERENCES rides(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    passenger_id INT NOT NULL,
+    status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ride_id) REFERENCES Rides(id) ON DELETE CASCADE,
+    FOREIGN KEY (passenger_id) REFERENCES Users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_request (ride_id, passenger_id), -- Prevent duplicate requests
+    INDEX idx_ride_id (ride_id) -- Index for request lookups by ride
 );
 
--- Create the tags table
-CREATE TABLE tags (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    description VARCHAR(255)
-);
+-- Insert sample data for testing (aligned with Roehampton context)
+INSERT INTO Users (name, email, profile_photo) VALUES
+('Sajan Tamang', 'tam22614816@roehampton.ac.uk', 'sajan.jpg'),
+('Himanshu Rana', 'ran22610335@roehampton.ac.uk', 'himanshu.jpg'),
+('Roshan Rayamajhi', 'ray22612573@roehampton.ac.uk', 'roshan.jpg'),
+('Johnny Chettri', 'chet22610001@roehampton.ac.uk', 'johnny.jpg'),
+('Dr. Hansraj Hatti', 'hatti001@roehampton.ac.uk', 'hansraj.jpg');
 
--- Create the ride_tags table for many-to-many relationship
-CREATE TABLE ride_tags (
-    ride_id INT NOT NULL,
-    tag_id INT NOT NULL,
-    PRIMARY KEY (ride_id, tag_id),
-    FOREIGN KEY (ride_id) REFERENCES rides(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-);
+INSERT INTO Rides (driver_id, departure_time, pickup_location, seats_available, tags) VALUES
+(1, '2025-03-19 08:00:00', 'Roehampton Lane, SW15 5PJ', 3, 'Early Morning'),
+(2, '2025-03-19 17:00:00', 'Barnes Station, SW13 0HT', 2, 'Evening'),
+(5, '2025-03-20 13:00:00', 'Kingston Station, KT1 1UJ', 4, 'Afternoon');
 
--- Insert users
-INSERT INTO users (name, email, password, phone_number)
-VALUES
-('John Doe', 'john@example.com', 'hashedpassword123', '1234567890'),
-('Jane Smith', 'jane@example.com', 'hashedpassword456', '0987654321');
-
--- Insert a ride
-INSERT INTO rides (driver_id, origin, destination, departure_time, available_seats, price)
-VALUES
-(1, 'New York', 'Boston', '2025-02-15 10:00:00', 3, 50.00);
-
--- Insert a booking
-INSERT INTO bookings (ride_id, user_id, seats_booked, total_price)
-VALUES
-(1, 2, 1, 50.00);
-
--- Insert tags
-INSERT INTO tags (name, description)
-VALUES
-('Morning', 'Early morning rides between 6am and 10am'),
-('Afternoon', 'Afternoon rides between 12pm and 4pm'),
-('Evening', 'Evening rides between 5pm and 8pm'),
-('Weekend', 'Rides on Saturday or Sunday'),
-('Express', 'Non-stop rides with no additional pickups');
-
--- Insert ride_tags
-INSERT INTO ride_tags (ride_id, tag_id)
-VALUES
-(1, 1), -- Morning tag for the New York to Boston ride
-(1, 4); -- Weekend tag for the New York to Boston ride
+INSERT INTO Ride_Requests (ride_id, passenger_id, status) VALUES
+(1, 4, 'pending'), -- Johnny requests to join Sajan's ride
+(2, 3, 'accepted'); -- Roshan joins Himanshu's ride
