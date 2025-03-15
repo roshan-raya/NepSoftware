@@ -1,49 +1,38 @@
 // Import express.js
 const express = require("express");
+const path = require("path");
 
 // Create express app
-const app = express();
+var app = express();
 
+// Set up view engine
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
+// app.set('views','./app/views'); // Removed old path
 // Middleware to parse JSON data
 app.use(express.json());
-// Middleware to parse form data (for profile editing)
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 
 // Add static files location
 app.use(express.static("static"));
+app.use('/css', express.static(path.join(__dirname, '../static/css')));
+app.use('/images', express.static(path.join(__dirname, '../static/images')));
+app.use(express.static(path.join(__dirname, '../styles')));
 
 // Get the functions in the db.js file to use
 const db = require('./services/db');
 
-// Use the Pug template engine 
-app.set('view engine', 'pug');
-app.set('views', './app/views');
-
 // Create a route for root - /
 app.get("/", function(req, res) {
-    res.render("index");
+    res.render('index');
 });
-
-// Route for the user list page
-app.get('/userlist', async (req, res) => {
-    try {
-        const sql = 'SELECT * FROM userlist'; // Ensure this table name matches the actual table in your database
-        const users = await db.query(sql);   // Fetch the users from the database
-        console.log(users);                   // Log the data to check if it’s being fetched
-        res.render('userlist', { users: users });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error fetching users from the database");
-    }
-});
-
-
 
 // Create a route for testing the database
 app.get("/db_test", async function(req, res) {
     try {
-        const sql = 'SELECT * FROM users';
-        const [results] = await db.query(sql);
+        // Query the users table to test connection
+        const sql = 'SELECT * FROM Users';
+        const results = await db.query(sql);
         console.log(results);
         res.send(results);
     } catch (error) {
@@ -52,110 +41,356 @@ app.get("/db_test", async function(req, res) {
     }
 });
 
-// Create a route to fetch all rides
-app.get("/rides", async function(req, res) {
+// Add a diagnostic route to check all tables
+app.get("/diagnostic", async function(req, res) {
     try {
-        const sql = 'SELECT * FROM rides';
-        const [rides] = await db.query(sql);
-        res.send(rides);
+        const output = {};
+        
+        // Test Users table
+        try {
+            const usersSql = 'SELECT COUNT(*) as count FROM Users';
+            const usersResult = await db.query(usersSql);
+            output.users = {
+                success: true,
+                count: usersResult[0].count,
+                message: 'Users table accessible'
+            };
+        } catch (error) {
+            output.users = {
+                success: false,
+                error: error.message,
+                message: 'Error accessing Users table'
+            };
+        }
+        
+        // Test Rides table
+        try {
+            const ridesSql = 'SELECT COUNT(*) as count FROM Rides';
+            const ridesResult = await db.query(ridesSql);
+            output.rides = {
+                success: true,
+                count: ridesResult[0].count,
+                message: 'Rides table accessible'
+            };
+        } catch (error) {
+            output.rides = {
+                success: false,
+                error: error.message,
+                message: 'Error accessing Rides table'
+            };
+        }
+        
+        // Test Ride_Requests table
+        try {
+            const requestsSql = 'SELECT COUNT(*) as count FROM Ride_Requests';
+            const requestsResult = await db.query(requestsSql);
+            output.requests = {
+                success: true,
+                count: requestsResult[0].count,
+                message: 'Ride_Requests table accessible'
+            };
+        } catch (error) {
+            output.requests = {
+                success: false,
+                error: error.message,
+                message: 'Error accessing Ride_Requests table'
+            };
+        }
+        
+        // Test a simple join query
+        try {
+            const joinSql = `
+                SELECT r.id, u.name 
+                FROM Rides r 
+                JOIN Users u ON r.driver_id = u.id 
+                LIMIT 1
+            `;
+            const joinResult = await db.query(joinSql);
+            output.join = {
+                success: true,
+                result: joinResult,
+                message: 'Join query successful'
+            };
+        } catch (error) {
+            output.join = {
+                success: false,
+                error: error.message,
+                message: 'Error with join query'
+            };
+        }
+        
+        // Return all diagnostic information
+        res.json(output);
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Error fetching rides");
+        console.error('Diagnostic error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Diagnostic test failed'
+        });
     }
 });
 
-// Create a route to add a new ride
-app.post("/rides", async function(req, res) {
-    const { driver_id, origin, destination, departure_time, available_seats, price } = req.body;
+// Create a route to fetch all tags
+app.get("/tags", async function(req, res) {
     try {
-        const sql = `INSERT INTO rides (driver_id, origin, destination, departure_time, available_seats, price) 
-                     VALUES (?, ?, ?, ?, ?, ?)`;
-        const [result] = await db.execute(sql, [driver_id, origin, destination, departure_time, available_seats, price]);
-        res.send({ message: "Ride added successfully", ride_id: result.insertId });
+        // Get all unique tags and count rides for each tag
+        const sql = `
+            SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(r.tags, ',', n.n), ',', -1)) AS name,
+            COUNT(DISTINCT r.id) AS ride_count
+            FROM Rides r
+            JOIN (
+                SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
+                SELECT 4 UNION ALL SELECT 5
+            ) n ON CHAR_LENGTH(r.tags) - CHAR_LENGTH(REPLACE(r.tags, ',', '')) >= n.n - 1
+            GROUP BY name
+            ORDER BY name;
+        `;
+        const tags = await db.query(sql);
+        
+        // Check if a specific tag is selected
+        const selectedTag = req.query.tag;
+        let taggedRides = [];
+        
+        if (selectedTag) {
+            // Get rides with the selected tag
+            const ridesSql = `
+                SELECT r.*, u.name AS driver_name, u.profile_photo
+                FROM Rides r
+                JOIN Users u ON r.driver_id = u.id
+                WHERE r.tags LIKE ?
+                ORDER BY r.departure_time;
+            `;
+            // Ensure the parameter is properly formatted
+            const tagParam = `%${selectedTag}%`;
+            taggedRides = await db.query(ridesSql, [tagParam]);
+        }
+        
+        res.render('tags_list', { 
+            title: 'Tags & Categories', 
+            tags, 
+            selectedTag, 
+            taggedRides 
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error adding ride");
+        res.status(500).send("Error fetching tags");
     }
 });
 
-// Create a route to fetch all users (API)
+// Users list route
 app.get("/users", async function(req, res) {
     try {
-        const sql = 'SELECT * FROM users';
-        const [users] = await db.query(sql);
-        res.send(users);
+        const sql = 'SELECT * FROM Users ORDER BY name';
+        const users = await db.query(sql);
+        res.render('users_list', { title: 'Users List', users });
     } catch (error) {
         console.error(error);
         res.status(500).send("Error fetching users");
     }
 });
 
-// Create a route to add a new user (API)
-app.post("/users", async function(req, res) {
-    const { name, email, password, phone_number, age } = req.body; // Added age
-    try {
-        const sql = `INSERT INTO users (name, email, password, phone_number, age) 
-                     VALUES (?, ?, ?, ?, ?)`;
-        const [result] = await db.execute(sql, [name, email, password, phone_number, age]);
-        res.send({ message: "User added successfully", user_id: result.insertId });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error adding user");
-    }
-});
-
-// User Profile Page (View)
+// User profile route
 app.get("/users/:id", async function(req, res) {
     try {
-        const sql = 'SELECT * FROM users WHERE id = ?';
-        const [user] = await db.query(sql, [req.params.id]);
-        if (user.length === 0) return res.status(404).send("User not found");
-        res.render("profile", { title: `${user[0].name}'s Profile`, user: user[0], edit: false });
+        const userId = parseInt(req.params.id, 10);
+        
+        // Get user details
+        const userSql = 'SELECT * FROM Users WHERE id = ?';
+        const [user] = await db.query(userSql, [userId]);
+        
+        if (!user) {
+            return res.status(404).render('users_profile', { title: 'User Not Found', user: null });
+        }
+        
+        // Get user's rides
+        const ridesSql = 'SELECT * FROM Rides WHERE driver_id = ? ORDER BY departure_time';
+        const rides = await db.query(ridesSql, [userId]);
+        
+        // Get user's ride requests
+        const requestsSql = 'SELECT * FROM Ride_Requests WHERE passenger_id = ? ORDER BY requested_at DESC';
+        const requests = await db.query(requestsSql, [userId]);
+        
+        res.render('users_profile', { 
+            title: `${user.name}'s Profile`, 
+            user, 
+            rides, 
+            requests 
+        });
     } catch (error) {
         console.error(error);
         res.status(500).send("Error fetching user profile");
     }
 });
 
-// User Profile Page (Edit Form)
-app.get("/users/:id/edit", async function(req, res) {
+// Rides listing route
+app.get("/rides", async function(req, res) {
     try {
-        const sql = 'SELECT * FROM users WHERE id = ?';
-        const [user] = await db.query(sql, [req.params.id]);
-        if (user.length === 0) return res.status(404).send("User not found");
-        res.render("profile", { title: `Edit ${user[0].name}'s Profile`, user: user[0], edit: true });
+        // Use a simpler query without pagination first
+        const simpleSql = `
+            SELECT r.*, u.name AS driver_name
+            FROM Rides r
+            JOIN Users u ON r.driver_id = u.id
+            ORDER BY r.departure_time
+            LIMIT 50
+        `;
+        
+        console.log('Executing simple rides query:', simpleSql);
+        
+        const rides = await db.query(simpleSql);
+        console.log(`Found ${rides.length} rides`);
+        
+        // Get all unique tags for the filter dropdown
+        const tagsSql = `
+            SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(tags, ',', 1), ',', -1)) AS tag
+            FROM Rides
+            WHERE tags IS NOT NULL AND tags != ''
+            LIMIT 20
+        `;
+        
+        console.log('Executing simple tags query:', tagsSql);
+        const tagsResult = await db.query(tagsSql);
+        console.log('Tags result:', tagsResult);
+        
+        const tags = tagsResult.map(row => row.tag);
+        
+        res.render('rides_list', { 
+            title: 'Available Rides', 
+            rides, 
+            search: '',
+            tag: '',
+            tags,
+            currentPage: 1, 
+            totalPages: 1
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Error loading edit page");
+        console.error('Error in /rides route:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).render('error', { 
+            message: 'Error fetching rides', 
+            error: { status: 500, stack: error.stack } 
+        });
     }
 });
 
-// Handle Profile Update
-app.post("/users/:id", async function(req, res) {
-    const { name, email, phone_number, age } = req.body;
+// Ride detail route
+app.get("/rides/:id", async function(req, res) {
     try {
-        const sql = `UPDATE users SET name = ?, email = ?, phone_number = ?, age = ? WHERE id = ?`;
-        await db.execute(sql, [name, email, phone_number, age, req.params.id]);
-        res.redirect(`/users/${req.params.id}`);
+        const rideId = parseInt(req.params.id, 10);
+        
+        // Get ride details with driver information
+        const rideSql = `
+            SELECT r.*, u.name AS driver_name, u.profile_photo
+            FROM Rides r
+            JOIN Users u ON r.driver_id = u.id
+            WHERE r.id = ?
+        `;
+        const [ride] = await db.query(rideSql, [rideId]);
+        
+        if (!ride) {
+            return res.status(404).render('rides_detail', { title: 'Ride Not Found', ride: null });
+        }
+        
+        // Get ride requests with passenger information
+        const requestsSql = `
+            SELECT rr.*, u.name AS passenger_name, u.profile_photo
+            FROM Ride_Requests rr
+            JOIN Users u ON rr.passenger_id = u.id
+            WHERE rr.ride_id = ?
+            ORDER BY rr.requested_at
+        `;
+        const requests = await db.query(requestsSql, [rideId]);
+        
+        res.render('rides_detail', { 
+            title: `Ride Details: ${ride.pickup_location} to ${ride.dropoff_location}`,
+            ride,
+            requests
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error updating profile");
+        res.status(500).send("Error fetching ride details");
     }
 });
 
-// Create a route to fetch all bookings
-app.get("/bookings", async function(req, res) {
+// Route to handle ride request submission
+app.post("/rides/:id/request", async function(req, res) {
     try {
-        const sql = 'SELECT * FROM bookings';
-        const [bookings] = await db.query(sql);
-        res.send(bookings);
+        const rideId = parseInt(req.params.id, 10);
+        const passengerId = 1; // In a real app, this would come from the authenticated user
+        const message = req.body.message || '';
+        
+        // Check if the ride exists and has available seats
+        const rideSql = 'SELECT * FROM Rides WHERE id = ? AND seats_available > 0';
+        const [ride] = await db.query(rideSql, [rideId]);
+        
+        if (!ride) {
+            return res.status(404).send("Ride not found or no seats available");
+        }
+        
+        // Check if the user already has a request for this ride
+        const checkSql = 'SELECT * FROM Ride_Requests WHERE ride_id = ? AND passenger_id = ?';
+        const existingRequests = await db.query(checkSql, [rideId, passengerId]);
+        
+        if (existingRequests.length > 0) {
+            return res.status(400).send("You already have a request for this ride");
+        }
+        
+        // Insert the new request
+        const insertSql = 'INSERT INTO Ride_Requests (ride_id, passenger_id, status) VALUES (?, ?, "pending")';
+        await db.query(insertSql, [rideId, passengerId]);
+        
+        res.redirect(`/rides/${rideId}`);
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error fetching bookings");
+        res.status(500).send("Error submitting ride request");
     }
 });
 
-// Start server on port 3000
-app.listen(3000, function() {
-    console.log(`Server running at http://127.0.0.1:3000/`);
+// Routes to handle request acceptance/rejection
+app.post("/rides/:rideId/requests/:requestId/accept", async function(req, res) {
+    try {
+        const rideId = parseInt(req.params.rideId, 10);
+        const requestId = parseInt(req.params.requestId, 10);
+        
+        // Update the request status
+        const updateSql = 'UPDATE Ride_Requests SET status = "accepted" WHERE id = ?';
+        await db.query(updateSql, [requestId]);
+        
+        // Decrease available seats
+        const updateRideSql = 'UPDATE Rides SET seats_available = seats_available - 1 WHERE id = ? AND seats_available > 0';
+        await db.query(updateRideSql, [rideId]);
+        
+        res.redirect(`/rides/${rideId}`);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error accepting ride request");
+    }
 });
+
+app.post("/rides/:rideId/requests/:requestId/reject", async function(req, res) {
+    try {
+        const rideId = parseInt(req.params.rideId, 10);
+        const requestId = parseInt(req.params.requestId, 10);
+        
+        // Update the request status
+        const updateSql = 'UPDATE Ride_Requests SET status = "rejected" WHERE id = ?';
+        await db.query(updateSql, [requestId]);
+        
+        res.redirect(`/rides/${rideId}`);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error rejecting ride request");
+    }
+});
+
+// Error handler
+app.use(function(err, req, res, next) {
+    console.error(err.stack);
+    res.status(500).render('error', {
+        message: err.message,
+        error: process.env.NODE_ENV === 'development' ? err : {}
+    });
+});
+
+// Export the app
+module.exports = app;
