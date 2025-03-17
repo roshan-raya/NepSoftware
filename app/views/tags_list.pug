@@ -29,6 +29,7 @@ block content
               .row
                 .col-md-8
                   h5 From: #{ride.pickup_location}
+                  p.mb-2 To: #{ride.dropoff_location}
                   p.mb-2
                     strong Driver: 
                     a(href=`/users/${ride.driver_id}`) #{ride.driver_name}
@@ -38,7 +39,8 @@ block content
                   if ride.tags
                     p.mb-0
                       each tag in ride.tags.split(',')
-                        span.badge.bg-secondary.me-1= tag.trim()
+                        if tag.trim()
+                          a.badge.bg-secondary.me-1(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
                 .col-md-4.text-end
                   a.btn.btn-primary(href=`/rides/${ride.id}`) View Details
       else

@@ -1,0 +1,144 @@
+/* Custom styles for Ride Sharing App */
+
+/* Card hover effect */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile image styling */
+.rounded-circle {
+  object-fit: cover;
+}
+
+/* Badge styling */
+.badge {
+  font-weight: 500;
+  padding: 0.5em 0.8em;
+}
+
+/* Status colors */
+.status-pending {
+  color: #ffc107;
+}
+
+.status-accepted {
+  color: #28a745;
+}
+
+.status-rejected {
+  color: #dc3545;
+}
+
+/* Footer styling */
+.footer {
+  margin-top: 3rem;
+  padding: 2rem 0;
+  background-color: #f8f9fa;
+}
+
+/* Page header styling */
+h1, h2, h3 {
+  margin-bottom: 1.5rem;
+  color: #343a40;
+}
+
+/* Button styling */
+.btn-primary {
+  background-color: #4e73df;
+  border-color: #4e73df;
+}
+
+.btn-primary:hover {
+  background-color: #2e59d9;
+  border-color: #2653d4;
+}
+
+/* Form styling */
+.form-control:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+}
+
+/* Pagination styling */
+.pagination .page-link {
+  color: #4e73df;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #4e73df;
+  border-color: #4e73df;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Create directory for profile images */
+.profile-img-container {
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+}
+
+.profile-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ride details styling */
+.ride-details {
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Tag cloud */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tag-cloud .badge {
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* Request list styling */
+.request-list .list-group-item {
+  transition: background-color 0.2s ease;
+}
+
+.request-list .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* View all routes section */
+.view-all-routes {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.btn-large {
+  padding: 0.75rem 2rem;
+  font-size: 1.1rem;
+  border-radius: 2rem;
+} 

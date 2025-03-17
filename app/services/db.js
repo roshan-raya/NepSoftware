@@ -31,40 +31,91 @@ const pool = mysql.createPool(config.db);
 async function query(sql, params) {
   try {
     console.log('DB Query:', sql);
-    console.log('DB Params:', params || []);
     
-    // Ensure params is an array and all elements are of proper types
-    const safeParams = Array.isArray(params) ? params.map(param => {
-      // Convert any non-primitive parameters to strings to avoid type issues
+    // Skip parameter processing if no params provided
+    if (!params || !Array.isArray(params) || params.length === 0) {
+      // Execute the query directly without parameters
+      const [result] = await pool.query(sql);
+      console.log(`DB Result: ${Array.isArray(result) ? result.length : (result ? 1 : 0)} rows returned`);
+      return result;
+    }
+    
+    // For simple cases with 1 or 2 numeric parameters (like LIMIT/OFFSET), handle separately
+    if (params.length <= 2 && params.every(p => typeof p === 'number' || (typeof p === 'string' && !isNaN(p)))) {
+      // Replace ? with actual values for simple numeric cases
+      let finalQuery = sql;
+      params.forEach(param => {
+        const numValue = Number(param);
+        finalQuery = finalQuery.replace('?', numValue);
+      });
+      
+      console.log('Simplified numeric query:', finalQuery);
+      const [result] = await pool.query(finalQuery);
+      console.log(`DB Result: ${Array.isArray(result) ? result.length : (result ? 1 : 0)} rows returned`);
+      return result;
+    }
+    
+    // Process parameters for more complex cases
+    const cleanParams = params.map(param => {
       if (param === null || param === undefined) {
         return null;
       }
+      
+      if (typeof param === 'number') {
+        return param;
+      }
+      
+      if (typeof param === 'string') {
+        // Only convert strings that are definitely numeric
+        if (/^-?\d+(\.\d+)?$/.test(param.trim())) {
+          return Number(param);
+        }
+        return param;
+      }
+      
       if (typeof param === 'object') {
         return JSON.stringify(param);
       }
+      
       return param;
-    }) : [];
+    });
     
-    console.log('Safe params after conversion:', safeParams);
-    console.log('Safe param types:', safeParams.map(p => typeof p));
+    console.log('Clean parameters:', cleanParams);
     
     try {
-      const [rows, fields] = await pool.execute(sql, safeParams);
-      console.log(`DB Result: ${rows.length} rows returned`);
-      return rows;
+      const [result] = await pool.execute(sql, cleanParams);
+      console.log(`DB Result: ${Array.isArray(result) ? result.length : (result ? 1 : 0)} rows returned`);
+      return result;
     } catch (execError) {
       console.error('SQL execution error:', execError.message);
       console.error('SQL that failed:', sql);
-      console.error('Parameters that failed:', safeParams);
-      throw execError;
+      console.error('Parameters that failed:', cleanParams);
+      
+      // Fallback: try with direct query as last resort
+      console.log('Trying fallback with direct query...');
+      let fallbackQuery = sql;
+      for (let i = 0; i < cleanParams.length; i++) {
+        const param = cleanParams[i];
+        if (typeof param === 'string') {
+          // Escape strings
+          fallbackQuery = fallbackQuery.replace('?', `'${param.replace(/'/g, "''")}'`);
+        } else if (param === null) {
+          fallbackQuery = fallbackQuery.replace('?', 'NULL');
+        } else {
+          fallbackQuery = fallbackQuery.replace('?', param);
+        }
+      }
+      console.log('Fallback query:', fallbackQuery);
+      const [fallbackResult] = await pool.query(fallbackQuery);
+      return fallbackResult;
     }
   } catch (error) {
     console.error('Database query error:', error);
-    console.error('Error code:', error.code);
-    console.error('Error number:', error.errno);
-    console.error('SQL state:', error.sqlState);
-    console.error('SQL message:', error.sqlMessage);
-    throw error; // Re-throw to be handled by the caller
+    if (error.code) console.error('Error code:', error.code);
+    if (error.errno) console.error('Error number:', error.errno);
+    if (error.sqlState) console.error('SQL state:', error.sqlState);
+    if (error.sqlMessage) console.error('SQL message:', error.sqlMessage);
+    throw error;
   }
 }
 
@@ -87,4 +138,3 @@ module.exports = {
   query,
   testConnection
 }
-
