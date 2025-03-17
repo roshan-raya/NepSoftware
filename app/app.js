@@ -134,6 +134,7 @@ app.get("/diagnostic", async function(req, res) {
 // Create a route to fetch all tags
 app.get("/tags", async function(req, res) {
     try {
+<<<<<<< HEAD
         // Get all tags from rides
         const sql = `
             SELECT DISTINCT tags
@@ -167,23 +168,50 @@ app.get("/tags", async function(req, res) {
             name,
             ride_count
         }));
+=======
+        // Get all unique tags and count rides for each tag
+        const sql = `
+            SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(r.tags, ',', n.n), ',', -1)) AS name,
+            COUNT(DISTINCT r.id) AS ride_count
+            FROM Rides r
+            JOIN (
+                SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
+                SELECT 4 UNION ALL SELECT 5
+            ) n ON CHAR_LENGTH(r.tags) - CHAR_LENGTH(REPLACE(r.tags, ',', '')) >= n.n - 1
+            GROUP BY name
+            ORDER BY name;
+        `;
+        const tags = await db.query(sql);
+>>>>>>> origin/main
         
         // Check if a specific tag is selected
         const selectedTag = req.query.tag;
         let taggedRides = [];
         
         if (selectedTag) {
+<<<<<<< HEAD
             // Get rides with the selected tag - using a simple query
+=======
+            // Get rides with the selected tag
+>>>>>>> origin/main
             const ridesSql = `
                 SELECT r.*, u.name AS driver_name, u.profile_photo
                 FROM Rides r
                 JOIN Users u ON r.driver_id = u.id
                 WHERE r.tags LIKE ?
+<<<<<<< HEAD
                 ORDER BY r.departure_time
                 LIMIT 50
             `;
             // Use a simple LIKE query
             taggedRides = await db.query(ridesSql, [`%${selectedTag}%`]);
+=======
+                ORDER BY r.departure_time;
+            `;
+            // Ensure the parameter is properly formatted
+            const tagParam = `%${selectedTag}%`;
+            taggedRides = await db.query(ridesSql, [tagParam]);
+>>>>>>> origin/main
         }
         
         res.render('tags_list', { 
@@ -246,6 +274,7 @@ app.get("/users/:id", async function(req, res) {
 // Rides listing route
 app.get("/rides", async function(req, res) {
     try {
+<<<<<<< HEAD
         const search = req.query.search || '';
         const tag = req.query.tag || '';
         
@@ -288,11 +317,31 @@ app.get("/rides", async function(req, res) {
         // Get all unique tags for the filter dropdown - very simple query
         const tagsSql = `
             SELECT DISTINCT tags
+=======
+        // Use a simpler query without pagination first
+        const simpleSql = `
+            SELECT r.*, u.name AS driver_name
+            FROM Rides r
+            JOIN Users u ON r.driver_id = u.id
+            ORDER BY r.departure_time
+            LIMIT 50
+        `;
+        
+        console.log('Executing simple rides query:', simpleSql);
+        
+        const rides = await db.query(simpleSql);
+        console.log(`Found ${rides.length} rides`);
+        
+        // Get all unique tags for the filter dropdown
+        const tagsSql = `
+            SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(tags, ',', 1), ',', -1)) AS tag
+>>>>>>> origin/main
             FROM Rides
             WHERE tags IS NOT NULL AND tags != ''
             LIMIT 20
         `;
         
+<<<<<<< HEAD
         console.log('Executing tags query:', tagsSql);
         const tagsResult = await db.query(tagsSql);
         console.log('Tags result:', tagsResult);
@@ -311,12 +360,24 @@ app.get("/rides", async function(req, res) {
         });
         
         const tags = Array.from(allTags);
+=======
+        console.log('Executing simple tags query:', tagsSql);
+        const tagsResult = await db.query(tagsSql);
+        console.log('Tags result:', tagsResult);
+        
+        const tags = tagsResult.map(row => row.tag);
+>>>>>>> origin/main
         
         res.render('rides_list', { 
             title: 'Available Rides', 
             rides, 
+<<<<<<< HEAD
             search,
             tag,
+=======
+            search: '',
+            tag: '',
+>>>>>>> origin/main
             tags,
             currentPage: 1, 
             totalPages: 1
@@ -451,4 +512,8 @@ app.use(function(err, req, res, next) {
 });
 
 // Export the app
+<<<<<<< HEAD
 module.exports = app;
+=======
+module.exports = app;
+>>>>>>> origin/main

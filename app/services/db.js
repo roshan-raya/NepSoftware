@@ -86,4 +86,9 @@ testConnection();
 module.exports = {
   query,
   testConnection
+<<<<<<< HEAD
 }
+=======
+}
+
+>>>>>>> origin/main
