@@ -134,36 +134,56 @@ app.get("/diagnostic", async function(req, res) {
 // Create a route to fetch all tags
 app.get("/tags", async function(req, res) {
     try {
-        // Get all unique tags and count rides for each tag
+        // Get all tags from rides
         const sql = `
-            SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(r.tags, ',', n.n), ',', -1)) AS name,
-            COUNT(DISTINCT r.id) AS ride_count
-            FROM Rides r
-            JOIN (
-                SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
-                SELECT 4 UNION ALL SELECT 5
-            ) n ON CHAR_LENGTH(r.tags) - CHAR_LENGTH(REPLACE(r.tags, ',', '')) >= n.n - 1
-            GROUP BY name
-            ORDER BY name;
+            SELECT DISTINCT tags
+            FROM Rides
+            WHERE tags IS NOT NULL AND tags != ''
+            LIMIT 50
         `;
-        const tags = await db.query(sql);
+        
+        const tagsResult = await db.query(sql);
+        
+        // Extract unique tags and count rides for each tag
+        const tagMap = new Map();
+        
+        tagsResult.forEach(row => {
+            if (row.tags) {
+                row.tags.split(',').forEach(tag => {
+                    const trimmedTag = tag.trim();
+                    if (trimmedTag) {
+                        if (tagMap.has(trimmedTag)) {
+                            tagMap.set(trimmedTag, tagMap.get(trimmedTag) + 1);
+                        } else {
+                            tagMap.set(trimmedTag, 1);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Convert to array of objects for the template
+        const tags = Array.from(tagMap.entries()).map(([name, ride_count]) => ({
+            name,
+            ride_count
+        }));
         
         // Check if a specific tag is selected
         const selectedTag = req.query.tag;
         let taggedRides = [];
         
         if (selectedTag) {
-            // Get rides with the selected tag
+            // Get rides with the selected tag - using a simple query
             const ridesSql = `
                 SELECT r.*, u.name AS driver_name, u.profile_photo
                 FROM Rides r
                 JOIN Users u ON r.driver_id = u.id
                 WHERE r.tags LIKE ?
-                ORDER BY r.departure_time;
+                ORDER BY r.departure_time
+                LIMIT 50
             `;
-            // Ensure the parameter is properly formatted
-            const tagParam = `%${selectedTag}%`;
-            taggedRides = await db.query(ridesSql, [tagParam]);
+            // Use a simple LIKE query
+            taggedRides = await db.query(ridesSql, [`%${selectedTag}%`]);
         }
         
         res.render('tags_list', { 
@@ -226,39 +246,77 @@ app.get("/users/:id", async function(req, res) {
 // Rides listing route
 app.get("/rides", async function(req, res) {
     try {
-        // Use a simpler query without pagination first
-        const simpleSql = `
-            SELECT r.*, u.name AS driver_name
+        const search = req.query.search || '';
+        const tag = req.query.tag || '';
+        
+        // Build the query based on filters
+        let sql = `
+            SELECT r.*, u.name AS driver_name, u.profile_photo
             FROM Rides r
             JOIN Users u ON r.driver_id = u.id
-            ORDER BY r.departure_time
-            LIMIT 50
         `;
         
-        console.log('Executing simple rides query:', simpleSql);
+        const params = [];
         
-        const rides = await db.query(simpleSql);
+        // Add WHERE clause only if we have filters
+        if (search || tag) {
+            sql += ' WHERE ';
+            
+            if (search) {
+                sql += '(r.pickup_location LIKE ? OR r.dropoff_location LIKE ?)';
+                params.push(`%${search}%`, `%${search}%`);
+                
+                if (tag) {
+                    sql += ' AND ';
+                }
+            }
+            
+            if (tag) {
+                sql += 'r.tags LIKE ?';
+                params.push(`%${tag}%`);
+            }
+        }
+        
+        // Add ordering and limit
+        sql += ` ORDER BY r.departure_time LIMIT 50`;
+        
+        console.log('Executing rides query:', sql, params);
+        
+        const rides = await db.query(sql, params);
         console.log(`Found ${rides.length} rides`);
         
-        // Get all unique tags for the filter dropdown
+        // Get all unique tags for the filter dropdown - very simple query
         const tagsSql = `
-            SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(tags, ',', 1), ',', -1)) AS tag
+            SELECT DISTINCT tags
             FROM Rides
             WHERE tags IS NOT NULL AND tags != ''
             LIMIT 20
         `;
         
-        console.log('Executing simple tags query:', tagsSql);
+        console.log('Executing tags query:', tagsSql);
         const tagsResult = await db.query(tagsSql);
         console.log('Tags result:', tagsResult);
         
-        const tags = tagsResult.map(row => row.tag);
+        // Extract unique tags from the results
+        const allTags = new Set();
+        tagsResult.forEach(row => {
+            if (row.tags) {
+                row.tags.split(',').forEach(tag => {
+                    const trimmedTag = tag.trim();
+                    if (trimmedTag) {
+                        allTags.add(trimmedTag);
+                    }
+                });
+            }
+        });
+        
+        const tags = Array.from(allTags);
         
         res.render('rides_list', { 
             title: 'Available Rides', 
             rides, 
-            search: '',
-            tag: '',
+            search,
+            tag,
             tags,
             currentPage: 1, 
             totalPages: 1

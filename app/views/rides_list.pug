@@ -11,20 +11,26 @@ block content
       p First ride ID: #{rides[0].id}
       p First ride pickup: #{rides[0].pickup_location}
       p First ride departure: #{rides[0].departure_time}
+    if tag
+      p Active tag filter: #{tag}
   
   .row.mb-4
     .col-md-6
       form(action='/rides', method='GET')
         .input-group
           input.form-control(type='text', name='search', placeholder='Search by location', value=search || '')
+          if tag
+            input(type='hidden', name='tag', value=tag)
           button.btn.btn-primary(type='submit') Search
     .col-md-6
       .d-flex.justify-content-end
         if tags && tags.length > 0
           select.form-select.w-auto(id='tagFilter')
             option(value='') Filter by tag
-            each tag in tags
-              option(value=tag)= tag
+            each tagOption in tags
+              option(value=tagOption, selected=tag === tagOption)= tagOption
+          if tag
+            a.btn.btn-outline-secondary.ms-2(href=`/rides${search ? '?search=' + search : ''}`) Clear Filter
   
   .row
     each ride in rides
@@ -49,7 +55,7 @@ block content
                   p.mb-0
                     each tag in (ride.tags || '').split(',')
                       if tag.trim()
-                        span.badge.bg-secondary.me-1= tag.trim()
+                        a.badge.bg-secondary.me-1(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
               .col-md-4.text-end
                 a.btn.btn-primary(href=`/rides/${ride.id}`) View Details
     else
@@ -60,22 +66,24 @@ block content
     nav(aria-label='Page navigation')
       ul.pagination.justify-content-center
         li.page-item(class=currentPage <= 1 ? 'disabled' : '')
-          a.page-link(href=`/rides?page=${currentPage - 1}${search ? '&search=' + search : ''}`) Previous
+          a.page-link(href=`/rides?page=${currentPage - 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`) Previous
         
         - for (let i = 1; i <= totalPages; i++)
           li.page-item(class=i === currentPage ? 'active' : '')
-            a.page-link(href=`/rides?page=${i}${search ? '&search=' + search : ''}`)= i
+            a.page-link(href=`/rides?page=${i}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)= i
         
         li.page-item(class=currentPage >= totalPages ? 'disabled' : '')
-          a.page-link(href=`/rides?page=${currentPage + 1}${search ? '&search=' + search : ''}`) Next
+          a.page-link(href=`/rides?page=${currentPage + 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`) Next
 
 block scripts
   script.
     document.getElementById('tagFilter').addEventListener('change', function() {
       const tag = this.value;
+      const search = new URLSearchParams(window.location.search).get('search') || '';
+      
       if (tag) {
-        window.location.href = `/rides?tag=${encodeURIComponent(tag)}`;
+        window.location.href = `/rides?tag=${encodeURIComponent(tag)}${search ? '&search=' + encodeURIComponent(search) : ''}`;
       } else {
-        window.location.href = '/rides';
+        window.location.href = `/rides${search ? '?search=' + encodeURIComponent(search) : ''}`;
       }
     }); 
