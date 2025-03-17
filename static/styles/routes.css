@@ -14,17 +14,16 @@
   }
   
   .route-card {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    padding: 25px;
-    width: 300px;
-    text-align: center;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
     transition: transform 0.3s ease;
   }
   
   .route-card:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
   }
   
   .route-title {
@@ -53,9 +52,4 @@
       max-width: 400px;
       margin-bottom: 30px;
     }
-<<<<<<< HEAD
   }
-  
-=======
-  }
->>>>>>> origin/main

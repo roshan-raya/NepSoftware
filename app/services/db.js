@@ -18,7 +18,7 @@ const config = {
     password: process.env.MYSQL_ROOT_PASSWORD || process.env.MYSQL_PASS || 'password',
     database: process.env.MYSQL_DATABASE || 'ridesharingapp',
     waitForConnections: true,
-    connectionLimit: 5,
+    connectionLimit: 10,
     queueLimit: 0,
   },
 };
@@ -27,45 +27,25 @@ const config = {
 console.log('Creating database connection pool...');
 const pool = mysql.createPool(config.db);
 
-// Utility function to query the database
+// Test the connection
+pool.getConnection()
+    .then(connection => {
+        console.log('Database connected successfully');
+        connection.release();
+    })
+    .catch(err => {
+        console.error('Error connecting to the database:', err);
+    });
+
+// Function to execute queries
 async function query(sql, params) {
-  try {
-    console.log('DB Query:', sql);
-    console.log('DB Params:', params || []);
-    
-    // Ensure params is an array and all elements are of proper types
-    const safeParams = Array.isArray(params) ? params.map(param => {
-      // Convert any non-primitive parameters to strings to avoid type issues
-      if (param === null || param === undefined) {
-        return null;
-      }
-      if (typeof param === 'object') {
-        return JSON.stringify(param);
-      }
-      return param;
-    }) : [];
-    
-    console.log('Safe params after conversion:', safeParams);
-    console.log('Safe param types:', safeParams.map(p => typeof p));
-    
     try {
-      const [rows, fields] = await pool.execute(sql, safeParams);
-      console.log(`DB Result: ${rows.length} rows returned`);
-      return rows;
-    } catch (execError) {
-      console.error('SQL execution error:', execError.message);
-      console.error('SQL that failed:', sql);
-      console.error('Parameters that failed:', safeParams);
-      throw execError;
+        const [results] = await pool.execute(sql, params);
+        return results;
+    } catch (error) {
+        console.error('Database query error:', error);
+        throw error;
     }
-  } catch (error) {
-    console.error('Database query error:', error);
-    console.error('Error code:', error.code);
-    console.error('Error number:', error.errno);
-    console.error('SQL state:', error.sqlState);
-    console.error('SQL message:', error.sqlMessage);
-    throw error; // Re-throw to be handled by the caller
-  }
 }
 
 // Test database connection
@@ -85,10 +65,6 @@ testConnection();
 
 module.exports = {
   query,
-  testConnection
-<<<<<<< HEAD
-}
-=======
-}
-
->>>>>>> origin/main
+  testConnection,
+  pool
+};

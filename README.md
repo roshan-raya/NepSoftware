@@ -33,8 +33,9 @@ This application allows users to share rides to and from the university, helping
 ## Setup Instructions
 
 ### Prerequisites
-- Node.js
-- Docker and Docker Compose
+- Node.js (Windows: https://nodejs.org/en/download/)
+- Docker Desktop (Windows: https://docs.docker.com/desktop/windows/install/)
+- Docker Compose
 
 ### Installation Steps
 
@@ -56,7 +57,7 @@ This application allows users to share rides to and from the university, helping
 3. **Start the Docker containers**
    ```bash
    npm install
-   docker-compose up
+   docker-compose up --build
    ```
 
 4. **Set up the database**
@@ -74,6 +75,13 @@ This application allows users to share rides to and from the university, helping
 ## Development
 
 The application is configured for development with automatic rebuilding when files change. Local files are mounted into the container using the 'volumes' directive in the docker-compose.yml.
+
+### What's Included in the Scaffolding?
+- A Docker setup providing Node.js, MySQL, and PHPMyAdmin with proper configuration
+- Basic Node.js application file structure
+- Package.json with required dependencies
+- Database connection setup with MySQL2 package (compatible with MySQL8)
+- Environment variable management using dotenv
 
 ## Useful Commands
 
