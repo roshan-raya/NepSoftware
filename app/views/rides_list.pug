@@ -1,79 +1,64 @@
 extends layout
 
 block content
-  h1.mb-4 Available Rides
-  
-  // Debug information
-  .alert.alert-info
-    p Debug Info:
-    p Rides count: #{rides ? rides.length : 0}
-    if rides && rides.length > 0
-      p First ride ID: #{rides[0].id}
-      p First ride pickup: #{rides[0].pickup_location}
-      p First ride departure: #{rides[0].departure_time}
-    if tag
-      p Active tag filter: #{tag}
-  
-  .row.mb-4
-    .col-md-6
-      form(action='/rides', method='GET')
-        .input-group
-          input.form-control(type='text', name='search', placeholder='Search by location', value=search || '')
-          if tag
-            input(type='hidden', name='tag', value=tag)
-          button.btn.btn-primary(type='submit') Search
-    .col-md-6
-      .d-flex.justify-content-end
-        if tags && tags.length > 0
-          select.form-select.w-auto(id='tagFilter')
-            option(value='') Filter by tag
-            each tagOption in tags
-              option(value=tagOption, selected=tag === tagOption)= tagOption
-          if tag
-            a.btn.btn-outline-secondary.ms-2(href=`/rides${search ? '?search=' + search : ''}`) Clear Filter
-  
-  .row
-    each ride in rides
-      .col-lg-6.mb-4
-        .card
-          .card-header.d-flex.justify-content-between.align-items-center
-            h5.mb-0 Ride ##{ride.id}
-            - var departureDate = new Date(ride.departure_time)
-            span.badge.bg-primary #{departureDate.toLocaleString()}
-          .card-body
-            .row
-              .col-md-8
-                h5 From: #{ride.pickup_location}
-                p.mb-2 To: #{ride.dropoff_location}
-                p.mb-2
-                  strong Driver: 
-                  a(href=`/users/${ride.driver_id}`) #{ride.driver_name}
-                p.mb-2
-                  strong Seats Available: 
-                  span.badge.bg-success #{ride.seats_available}
-                if ride.tags
-                  p.mb-0
-                    each tag in (ride.tags || '').split(',')
-                      if tag.trim()
-                        a.badge.bg-secondary.me-1(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
-              .col-md-4.text-end
-                a.btn.btn-primary(href=`/rides/${ride.id}`) View Details
+  .container
+    h1.title Available Rides
+    
+    .rides-filters
+      form.filter-form(action="/rides" method="GET")
+        .form-group
+          label(for="from") From:
+          input.form-control(type="text" id="from" name="from" value=query.from)
+        
+        .form-group
+          label(for="to") To:
+          input.form-control(type="text" id="to" name="to" value=query.to)
+        
+        .form-group
+          label(for="date") Date:
+          input.form-control(type="date" id="date" name="date" value=query.date)
+        
+        .form-group
+          label(for="seats") Minimum Seats:
+          input.form-control(type="number" id="seats" name="seats" min="1" value=query.seats)
+        
+        button.btn.btn-primary(type="submit") Search
+    
+    if rides.length > 0
+      .rides-grid
+        each ride in rides
+          .ride-card
+            .ride-header
+              h3.ride-title= ride.title
+              .ride-meta
+                span.ride-date= new Date(ride.departure_time).toLocaleDateString()
+                span.ride-time= new Date(ride.departure_time).toLocaleTimeString()
+            
+            .ride-details
+              .ride-route
+                span.route-from= ride.from_location
+                span.route-arrow →
+                span.route-to= ride.to_location
+              
+              .ride-driver
+                if ride.driver_name
+                  span.driver-label Driver:
+                  span.driver-name= ride.driver_name
+              
+              .ride-seats
+                span.seats-label Available Seats:
+                span.seats-count= ride.available_seats
+              
+              if ride.tags
+                .ride-tags
+                  each tag in ride.tags.split(',')
+                    if tag.trim()
+                      span.tag= tag.trim()
+            
+            .ride-actions
+              a.btn.btn-primary(href=`/rides/${ride.id}`) View Details
     else
-      .col-12
-        .alert.alert-info No rides found.
-  
-  if totalPages > 1
-    nav(aria-label='Page navigation')
-      ul.pagination.justify-content-center
-        li.page-item(class=currentPage <= 1 ? 'disabled' : '')
-          a.page-link(href=`/rides?page=${currentPage - 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`) Previous
-        
-        - for (let i = 1; i <= totalPages; i++)
-          li.page-item(class=i === currentPage ? 'active' : '')
-            a.page-link(href=`/rides?page=${i}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)= i
-        
-        li.page-item(class=currentPage >= totalPages ? 'disabled' : '')
-          a.page-link(href=`/rides?page=${currentPage + 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`) Next
+      p.no-rides No rides found matching your criteria.
 
 block scripts
   script.

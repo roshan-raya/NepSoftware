@@ -134,7 +134,7 @@ app.get("/diagnostic", async function(req, res) {
 // Create a route to fetch all tags
 app.get("/tags", async function(req, res) {
     try {
-        // Get all unique tags and count rides for each tag
+        // Get all unique tags and count rides for each tag using a more efficient SQL query
         const sql = `
             SELECT DISTINCT TRIM(tag) AS name, COUNT(DISTINCT ride_id) AS ride_count
             FROM (
@@ -157,16 +157,17 @@ app.get("/tags", async function(req, res) {
         let taggedRides = [];
         
         if (selectedTag) {
-            // Get rides with the selected tag - using simpler LIKE pattern
+            // Get rides with the selected tag
             const ridesSql = `
                 SELECT r.*, u.name AS driver_name, u.profile_photo
                 FROM Rides r
                 JOIN Users u ON r.driver_id = u.id
-                WHERE r.tags = ? OR r.tags LIKE ? OR r.tags LIKE ? OR r.tags LIKE ?
+                WHERE r.tags LIKE ?
                 ORDER BY r.departure_time;
             `;
             // Ensure the parameter is properly formatted
-            taggedRides = await db.query(ridesSql, [selectedTag, `${selectedTag},%`, `%,${selectedTag},%`, `%,${selectedTag}`]);
+            const tagParam = `%${selectedTag}%`;
+            taggedRides = await db.query(ridesSql, [tagParam]);
         }
         
         res.render('tags_list', { 
@@ -229,15 +230,9 @@ app.get("/users/:id", async function(req, res) {
 // Rides listing route
 app.get("/rides", async function(req, res) {
     try {
-        const search = req.query.search || '';
-        const tag = req.query.tag || '';
-        const page = parseInt(req.query.page) || 1;
-        const limit = 10;
-        const offset = (page - 1) * limit;
-        
-        // Build the query based on filters
-        let sql = `
-            SELECT r.*, u.name AS driver_name, u.profile_photo
+        // Use a simpler query without pagination first
+        const simpleSql = `
+            SELECT r.*, u.name AS driver_name
             FROM Rides r
             JOIN Users u ON r.driver_id = u.id
             WHERE 1=1
@@ -293,22 +288,13 @@ app.get("/rides", async function(req, res) {
         
         // Get all unique tags for the filter dropdown - simplified query to avoid errors
         const tagsSql = `
-            SELECT DISTINCT TRIM(tag) AS tag
-            FROM (
-                SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(tags, ',', n.n), ',', -1) AS tag
-                FROM Rides
-                JOIN (
-                    SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
-                    SELECT 4 UNION ALL SELECT 5
-                ) n ON CHAR_LENGTH(tags) - CHAR_LENGTH(REPLACE(tags, ',', '')) >= n.n - 1
-                WHERE tags IS NOT NULL AND tags != ''
-            ) AS tags_extracted
-            WHERE tag != ''
-            ORDER BY tag
+            SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(tags, ',', 1), ',', -1)) AS tag
+            FROM Rides
+            WHERE tags IS NOT NULL AND tags != ''
             LIMIT 20
         `;
         
-        console.log('Executing tags query:', tagsSql);
+        console.log('Executing simple tags query:', tagsSql);
         const tagsResult = await db.query(tagsSql);
         console.log('Tags result:', tagsResult);
         
@@ -317,8 +303,8 @@ app.get("/rides", async function(req, res) {
         res.render('rides_list', { 
             title: 'Available Rides', 
             rides, 
-            search,
-            tag,
+            search: '',
+            tag: '',
             tags,
             currentPage: page, 
             totalPages

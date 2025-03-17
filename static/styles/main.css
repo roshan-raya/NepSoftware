@@ -8,4 +8,149 @@
 @import 'testimonials.css';
 @import 'footer.css';
 @import 'auth.css';
+<<<<<<< HEAD
 @import 'rideshare.css'
+=======
+
+/* Add this to the bottom of main.css */
+
+/* For screens 768px and smaller (tablets, small laptops) */
+@media only screen and (max-width: 768px) {
+    /* Adjust Header */
+    .header {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .nav-list {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .nav-item {
+      margin: 10px 0;
+    }
+  
+    /* Adjust Hero Section */
+    .hero-title {
+      font-size: 24px;
+    }
+  
+    .hero-subtitle {
+      font-size: 16px;
+    }
+  
+    .hero-description {
+      font-size: 14px;
+    }
+  
+    .button-group {
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+  
+    .btn {
+      width: 100%;
+      padding: 12px;
+    }
+  
+    /* Adjust Colleges Section */
+    .colleges-container {
+      flex-direction: column;
+      gap: 20px;
+    }
+  
+    .college {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+  
+    /* Adjust Steps in "How It Works" */
+    .steps-container {
+      display: block;
+    }
+  
+    .step {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+  
+    .step-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+  
+    /* Adjust Popular Routes */
+    .routes-container {
+      display: block;
+    }
+  
+    .route-card {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+  
+    /* Adjust Testimonials */
+    .testimonials-container {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .testimonial {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+  }
+  
+  /* For screens 480px and smaller (smartphones) */
+  @media only screen and (max-width: 480px) {
+    /* Adjust Hero Section */
+    .hero-title {
+      font-size: 20px;
+    }
+  
+    .hero-description {
+      font-size: 14px;
+    }
+  
+    .btn {
+      font-size: 14px;
+      padding: 10px;
+    }
+  
+    /* Adjust Colleges Section */
+    .colleges-container {
+      padding: 10px;
+    }
+  
+    .college {
+      width: 100%;
+    }
+  
+    /* Adjust Steps in "How It Works" */
+    .step-icon {
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+    }
+  
+    .step-title {
+      font-size: 16px;
+    }
+  
+    .step-description {
+      font-size: 14px;
+    }
+  
+    /* Adjust Testimonials */
+    .testimonial-text {
+      font-size: 14px;
+    }
+  
+    .testimonial-author {
+      font-size: 12px;
+    }
+  }
+>>>>>>> origin/main
