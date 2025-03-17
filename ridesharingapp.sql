@@ -11,7 +11,7 @@ CREATE TABLE Users (
     INDEX idx_email (email)
 );
 
--- Table for Rides (ride listings posted by drivers)
+-- Table for Rides (ride listings posted by drivers )
 CREATE TABLE Rides (
     id INT AUTO_INCREMENT PRIMARY KEY,
     driver_id INT NOT NULL,
