@@ -85,6 +85,7 @@ The application is configured for development with automatic rebuilding when fil
 - Access MySQL CLI:
   ```bash
   mysql -uroot -p<password>
+  
   ```
 
 ## Database Connection
