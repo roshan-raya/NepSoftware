@@ -15,10 +15,7 @@ block content
             
             h4 Driver
             .d-flex.align-items-center.mb-3
-              if ride.profile_photo
-                img.rounded-circle.me-2(src=`/images/profiles/${ride.profile_photo}` alt=`${ride.driver_name}'s profile photo` width='50' height='50')
-              else
-                img.rounded-circle.me-2(src='/images/profiles/default.jpg' alt='Default profile photo' width='50' height='50')
+              img.rounded-circle.me-2(src=getProfilePhoto(ride.profile_photo) alt=`${ride.driver_name}'s profile photo` width='50' height='50')
               a.fs-5(href=`/users/${ride.driver_id}`) #{ride.driver_name}
             
             h4 Seats Available
@@ -51,10 +48,7 @@ block content
             .list-group-item
               .d-flex.justify-content-between.align-items-center
                 .d-flex.align-items-center
-                  if request.profile_photo
-                    img.rounded-circle.me-2(src=`/images/profiles/${request.profile_photo}` alt=`${request.passenger_name}'s profile photo` width='40' height='40')
-                  else
-                    img.rounded-circle.me-2(src='/images/profiles/default.jpg' alt='Default profile photo' width='40' height='40')
+                  img.rounded-circle.me-2(src=getProfilePhoto(request.profile_photo) alt=`${request.passenger_name}'s profile photo` width='40' height='40')
                   div
                     a.fw-bold(href=`/users/${request.passenger_id}`) #{request.passenger_name}
                     p.mb-0.text-muted Requested: #{new Date(request.requested_at).toLocaleString()}
