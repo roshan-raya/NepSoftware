@@ -19,6 +19,12 @@ app.use('/css', express.static(path.join(__dirname, '../static/css')));
 app.use('/images', express.static(path.join(__dirname, '../static/images')));
 app.use(express.static(path.join(__dirname, '../styles')));
 
+// Add a helper function for profile photos with default fallback
+app.locals.getProfilePhoto = function(photoName) {
+    // Always return the default photo path regardless of input
+    return '/images/profiles/default.jpg';
+};
+
 // Get the functions in the db.js file to use
 const db = require('./services/db');
 
