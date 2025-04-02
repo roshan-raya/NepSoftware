@@ -11,6 +11,31 @@ CREATE TABLE Users (
     INDEX idx_email (email)
 );
 
+-- Table for User Credentials (login information)
+CREATE TABLE UserCredentials (
+    user_id INT PRIMARY KEY,
+    password_hash VARCHAR(255) NOT NULL,
+    salt VARCHAR(32) NOT NULL,
+    last_password_change TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    account_status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
+    failed_login_attempts INT DEFAULT 0,
+    last_login_attempt TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+-- Table for User Sessions (to track logged-in users)
+CREATE TABLE UserSessions (
+    session_id VARCHAR(64) PRIMARY KEY,
+    user_id INT NOT NULL,
+    login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id)
+);
+
 -- Table for Rides (ride listings posted by drivers)
 CREATE TABLE Rides (
     id INT AUTO_INCREMENT PRIMARY KEY,
