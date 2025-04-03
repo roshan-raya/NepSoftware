@@ -1,5 +1,6 @@
 // Import express.js
 const express = require("express");
+const session = require('express-session');
 const path = require("path");
 
 // Create express app
@@ -11,29 +12,55 @@ app.set('view engine', 'pug');
 
 // Middleware to parse JSON data
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 
 // Add static files location
-app.use(express.static("static"));
+app.use(express.static(path.join(__dirname, '../static')));
+app.use('/static', express.static(path.join(__dirname, '../static')));
 app.use('/css', express.static(path.join(__dirname, '../static/css')));
 app.use('/images', express.static(path.join(__dirname, '../static/images')));
-app.use(express.static(path.join(__dirname, '../styles')));
+app.use('/images/profiles', express.static(path.join(__dirname, '../static/images/profiles')));
+
+// Session middleware
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
+}));
 
 // Add a helper function for profile photos with default fallback
 app.locals.getProfilePhoto = function(photoName) {
-    return '/images/profiles/default.jpg';
+    // If no photo name or it's null/undefined/empty, return default
+    if (!photoName || photoName === 'null' || photoName === 'undefined' || photoName === '' || photoName === null || photoName === undefined) {
+        return '/images/profiles/default.jpg';
+    }
+    
+    // Always construct the full path
+    return `/images/profiles/${photoName}`;
 };
+
+// Middleware to make user data available to all templates
+app.use((req, res, next) => {
+  // Make user data available to all templates
+  res.locals.userId = req.session.userId;
+  res.locals.userName = req.session.userName;
+  next();
+});
 
 // Import routes
 const userRoutes = require('./routes/userRoutes');
 const rideRoutes = require('./routes/rideRoutes');
+const { isAuthenticated } = require('./middleware/auth');
 
 // Get the functions in the db.js file to use
 const db = require('./services/db');
 
 // Create a route for root - /
 app.get("/", function(req, res) {
-    res.render('index');
+    // Check if there's an auth parameter in the query
+    const authRequired = req.query.auth === 'required';
+    res.render('index', { authRequired });
 });
 
 // Create a route for testing the database
@@ -140,15 +167,13 @@ app.get("/diagnostic", async function(req, res) {
 
 // Use routes
 app.use("/users", userRoutes);
-app.use("/rides", rideRoutes);
+// Apply authentication middleware to rides routes
+app.use("/rides", isAuthenticated, rideRoutes);
 
 // Error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).render('error', {
-        message: err.message,
-        error: process.env.NODE_ENV === 'development' ? err : {}
-    });
+    res.status(500).json({ error: 'Something went wrong!' });
 });
 
 // Export the app

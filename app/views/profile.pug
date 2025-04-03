@@ -1,0 +1,224 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title User Profile - NepSoftware
+    link(rel="stylesheet", href="/css/main.css")
+  
+  body
+    .ride-share-app
+      header.header
+        .logo-container
+          h1.logo NepSoftware
+        nav.nav
+          ul.nav-list
+            li.nav-item
+              a.nav-link(href="/") Home
+            li.nav-item
+              a.nav-link(href="/rides") Rides
+            li.nav-item
+              a.nav-link.active(href=`/users/${user.id}`) Profile
+            li.nav-item
+              a.nav-link(href="#") Help
+            if locals.userId
+              li.nav-item
+                button.btn.btn-danger#logout-btn Logout
+
+      .profile-container
+        .profile-header
+          h2.profile-title User Profile
+          button.btn.btn-primary#edit-profile-btn Edit Profile
+        
+        .profile-content
+          .profile-photo-container
+            img.profile-photo(src=user.photo_url || "/images/profiles/default.jpg", alt="Profile Photo")
+            label.edit-photo-btn(for="edit-photo-input")
+              i.fas.fa-camera
+            input#edit-photo-input.edit-photo-input(type="file", accept="image/*")
+          
+          .profile-info
+            .profile-field
+              label Name
+              p#profile-name= user.name
+              input#edit-name.form-control(type="text", value=user.name, style="display: none;")
+            
+            .profile-field
+              label Email
+              p#profile-email= user.email
+              input#edit-email.form-control(type="email", value=user.email, style="display: none;")
+            
+            .profile-field
+              label Member Since
+              p= new Date(user.created_at).toLocaleDateString()
+            
+            .profile-actions
+              button.btn.btn-success#save-profile-btn(style="display: none;") Save Changes
+              button.btn.btn-secondary#cancel-edit-btn(style="display: none;") Cancel
+
+      footer.footer
+        .footer-content
+          .footer-section
+            h3.footer-title NepSoftware
+            p.footer-text Roehampton University of London, UK
+            p.footer-text Making campus travel easier.
+          .footer-section
+            h3.footer-title Contact
+            p.footer-text Email: info@nepsoftware.com
+            p.footer-text Phone: +44 20 1234 5678
+          .footer-section
+            h3.footer-title Links
+            ul.footer-links
+              li
+                a(href="#") About Us
+              li
+                a(href="#") Safety
+              li
+                a(href="#") Terms & Conditions
+              li
+                a(href="#") Privacy Policy
+        .footer-bottom
+          p &copy; 2023 NepSoftware - Roehampton University. All rights reserved.
+
+    script.
+      document.addEventListener('DOMContentLoaded', function() {
+        const editProfileBtn = document.getElementById('edit-profile-btn');
+        const saveProfileBtn = document.getElementById('save-profile-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+        const editName = document.getElementById('edit-name');
+        const editEmail = document.getElementById('edit-email');
+        const editPhotoInput = document.getElementById('edit-photo-input');
+        const profilePhoto = document.querySelector('.profile-photo');
+        
+        // Edit profile button click handler
+        editProfileBtn.addEventListener('click', function() {
+          // Show edit fields
+          profileName.style.display = 'none';
+          profileEmail.style.display = 'none';
+          editName.style.display = 'block';
+          editEmail.style.display = 'block';
+          
+          // Show save and cancel buttons
+          saveProfileBtn.style.display = 'inline-block';
+          cancelEditBtn.style.display = 'inline-block';
+          
+          // Hide edit button
+          editProfileBtn.style.display = 'none';
+        });
+        
+        // Cancel edit button click handler
+        cancelEditBtn.addEventListener('click', function() {
+          // Reset form values
+          editName.value = profileName.textContent;
+          editEmail.value = profileEmail.textContent;
+          
+          // Hide edit fields
+          profileName.style.display = 'block';
+          profileEmail.style.display = 'block';
+          editName.style.display = 'none';
+          editEmail.style.display = 'none';
+          
+          // Hide save and cancel buttons
+          saveProfileBtn.style.display = 'none';
+          cancelEditBtn.style.display = 'none';
+          
+          // Show edit button
+          editProfileBtn.style.display = 'inline-block';
+        });
+        
+        // Save profile button click handler
+        saveProfileBtn.addEventListener('click', function() {
+          const name = editName.value;
+          const email = editEmail.value;
+          const photoFile = editPhotoInput.files[0];
+          
+          // Create FormData object for file upload
+          const formData = new FormData();
+          formData.append('name', name);
+          formData.append('email', email);
+          if (photoFile) {
+            formData.append('photo', photoFile);
+          }
+          
+          // Send update request
+          fetch(`/users/${profileName.dataset.userId}/update`, {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Update displayed values
+              profileName.textContent = name;
+              profileEmail.textContent = email;
+              
+              if (data.photo_url) {
+                profilePhoto.src = data.photo_url;
+              }
+              
+              // Hide edit fields
+              profileName.style.display = 'block';
+              profileEmail.style.display = 'block';
+              editName.style.display = 'none';
+              editEmail.style.display = 'none';
+              
+              // Hide save and cancel buttons
+              saveProfileBtn.style.display = 'none';
+              cancelEditBtn.style.display = 'none';
+              
+              // Show edit button
+              editProfileBtn.style.display = 'inline-block';
+              
+              alert('Profile updated successfully!');
+            } else {
+              alert(data.error || 'Failed to update profile. Please try again.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating your profile. Please try again.');
+          });
+        });
+        
+        // Profile photo change handler
+        if (editPhotoInput) {
+          editPhotoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                profilePhoto.src = e.target.result;
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        }
+        
+        // Logout button click handler
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', function() {
+            fetch('/users/logout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('Logout successful!');
+                window.location.href = '/';
+              } else {
+                alert(data.error || 'Logout failed. Please try again.');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('An error occurred during logout. Please try again.');
+            });
+          });
+        }
+      }); 

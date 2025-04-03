@@ -6,6 +6,7 @@ CREATE TABLE Users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL CHECK (email LIKE '%@roehampton.ac.uk'),
+    password VARCHAR(192) NOT NULL,
     profile_photo VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_email (email)
@@ -38,22 +39,22 @@ CREATE TABLE Ride_Requests (
 );
 
 -- Insert 15 Users (Roehampton students and staff)
-INSERT INTO Users (name, email, profile_photo) VALUES
-('Sajan Tamang', 'tam22614816@roehampton.ac.uk', 'sajan.jpg'),
-('Himanshu Rana', 'ran22610335@roehampton.ac.uk', 'himanshu.jpg'),
-('Roshan Rayamajhi', 'ray22612573@roehampton.ac.uk', 'roshan.jpg'),
-('Johnny Chettri', 'chet22610001@roehampton.ac.uk', 'johnny.jpg'),
-('Dr. Hansraj Hatti', 'hatti001@roehampton.ac.uk', 'hansraj.jpg'),
-('Priya Sharma', 'shar22610002@roehampton.ac.uk', 'priya.jpg'),
-('Liam Brown', 'brow22610003@roehampton.ac.uk', 'liam.jpg'),
-('Aisha Khan', 'khan22610004@roehampton.ac.uk', 'aisha.jpg'),
-('Dr. Emily Watson', 'wats002@roehampton.ac.uk', 'emily.jpg'),
-('Omar Hassan', 'hass22610005@roehampton.ac.uk', 'omar.jpg'),
-('Sophie Green', 'gree22610006@roehampton.ac.uk', 'sophie.jpg'),
-('Prof. James Carter', 'cart003@roehampton.ac.uk', 'james.jpg'),
-('Mei Lin', 'lin22610007@roehampton.ac.uk', 'mei.jpg'),
-('Lucas Patel', 'pate22610008@roehampton.ac.uk', 'lucas.jpg'),
-('Zara Ali', 'ali22610009@roehampton.ac.uk', 'zara.jpg');
+INSERT INTO Users (name, email, password, profile_photo) VALUES
+('Sajan Tamang', 'tam22614816@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'sajan.jpg'),
+('Himanshu Rana', 'ran22610335@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'himanshu.jpg'),
+('Roshan Rayamajhi', 'ray22612573@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'roshan.jpg'),
+('Johnny Chettri', 'chet22610001@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'johnny.jpg'),
+('Dr. Hansraj Hatti', 'hatti001@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'hansraj.jpg'),
+('Priya Sharma', 'shar22610002@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'priya.jpg'),
+('Liam Brown', 'brow22610003@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'liam.jpg'),
+('Aisha Khan', 'khan22610004@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'aisha.jpg'),
+('Dr. Emily Watson', 'wats002@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'emily.jpg'),
+('Omar Hassan', 'hass22610005@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'omar.jpg'),
+('Sophie Green', 'gree22610006@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'sophie.jpg'),
+('Prof. James Carter', 'cart003@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'james.jpg'),
+('Mei Lin', 'lin22610007@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'mei.jpg'),
+('Lucas Patel', 'pate22610008@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'lucas.jpg'),
+('Zara Ali', 'ali22610009@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'zara.jpg');
 
 -- Insert 15 Rides (various times and locations around Roehampton)
 INSERT INTO Rides (driver_id, departure_time, pickup_location, seats_available, tags) VALUES
