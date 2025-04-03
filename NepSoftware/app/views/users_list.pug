@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1.mb-4 Users List
+  
+  .row
+    each user in users
+      .col-md-4.mb-4
+        .card
+          .card-img-top.profile-photo-container
+            img(src=getProfilePhoto(user.profile_photo) alt=`${user.name}'s profile photo` style="width: 100%; height: 200px; object-fit: cover;")
+          .card-body
+            h5.card-title= user.name
+            p.card-text= user.email
+            p.card-text
+              small.text-muted Member since: #{new Date(user.created_at).toLocaleDateString()}
+            a.btn.btn-primary(href=`/users/${user.id}`) View Profile
+    else
+      .col-12
+        .alert.alert-info No users found. 

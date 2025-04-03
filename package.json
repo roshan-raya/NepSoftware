@@ -1,23 +1,19 @@
 {
-  "name": "sd2-example",
+  "name": "nepsoftware2",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "supervisor index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
   "author": "",
   "license": "ISC",
+  "description": "",
   "dependencies": {
-    "dotenv": "^10.0.0",
-    "express": "^4.17.1",
+    "bcrypt": "^5.1.1",
+    "express": "^5.1.0",
     "express-session": "^1.18.1",
-    "multer": "^1.4.5-lts.2",
-    "mysql": "^2.18.1",
-    "mysql2": "^3.12.0",
-    "pug": "^3.0.3",
-    "sqlite3": "^5.0.2",
-    "supervisor": "^0.12.0"
+    "mysql2": "^3.14.0",
+    "pug": "^3.0.3"
   }
 }
