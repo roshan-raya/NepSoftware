@@ -11,4 +11,7 @@ router.get("/:id", UserController.getUserProfile);
 // Sign up route
 router.post("/signup", UserController.signUp);
 
+// Login route
+router.post("/login", UserController.login);
+
 module.exports = router; 
