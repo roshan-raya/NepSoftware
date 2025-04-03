@@ -15,10 +15,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Add static files location
-app.use(express.static("static"));
+app.use(express.static(path.join(__dirname, '../static')));
+app.use('/static', express.static(path.join(__dirname, '../static')));
 app.use('/css', express.static(path.join(__dirname, '../static/css')));
 app.use('/images', express.static(path.join(__dirname, '../static/images')));
-app.use(express.static(path.join(__dirname, '../styles')));
+app.use('/images/profiles', express.static(path.join(__dirname, '../static/images/profiles')));
 
 // Session middleware
 app.use(session({
@@ -30,7 +31,13 @@ app.use(session({
 
 // Add a helper function for profile photos with default fallback
 app.locals.getProfilePhoto = function(photoName) {
-    return '/images/profiles/default.jpg';
+    // If no photo name or it's null/undefined/empty, return default
+    if (!photoName || photoName === 'null' || photoName === 'undefined' || photoName === '' || photoName === null || photoName === undefined) {
+        return '/images/profiles/default.jpg';
+    }
+    
+    // Always construct the full path
+    return `/images/profiles/${photoName}`;
 };
 
 // Middleware to make user data available to all templates
