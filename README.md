@@ -43,14 +43,36 @@ This application allows users to share rides to and from the university, helping
 2. **Create .env file**
    Create a `.env` file in the root directory with the following content:
    ```
-   MYSQL_HOST=localhost
-   MYSQL_USER=admin
-   MYSQL_PASS=password
-   MYSQL_ROOT_PASSWORD=password
-   MYSQL_DATABASE=ridesharingapp
-   MYSQL_ROOT_USER=root
-   DB_CONTAINER=db
-   DB_PORT=3306
+# Database Configuration
+MYSQL_HOST=localhost
+MYSQL_USER=admin
+MYSQL_PASS=password
+MYSQL_ROOT_PASSWORD=password
+MYSQL_DATABASE=ridesharingapp
+MYSQL_ROOT_USER=root
+DB_CONTAINER=db
+DB_PORT=3306
+
+# JWT Configuration
+JWT_SECRET=NepSoftwareRideSharingSecretKey2025
+JWT_EXPIRES_IN=24h
+
+# Google Maps API Configuration
+GOOGLE_MAPS_API_KEY=AIzaSyDummyKeyForDevelopment
+
+# Email Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_specific_password
+SMTP_FROM=noreply@roehampton-rideshare.ac.uk
+
+# Application Configuration
+APP_URL=http://localhost:3000
+PORT=3000
+NODE_ENV=development
+
    ```
 
 3. **Start the Docker containers**
