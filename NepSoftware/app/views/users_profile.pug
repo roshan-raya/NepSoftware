@@ -5,7 +5,11 @@ block content
     .row
       .col-md-4.mb-4
         .card
-          img.card-img-top(src=getProfilePhoto(user.profile_photo) alt=`${user.name}'s profile photo`)
+          .position-relative
+            img.card-img-top(src=getProfilePhoto(user.profile_photo) alt=`${user.name}'s profile photo`)
+            if locals.userId && locals.userId == user.id
+              a.btn.btn-sm.btn-primary.position-absolute.top-0.end-0.m-2(href=`/users/${user.id}/edit`)
+                i.fas.fa-edit
           .card-body
             h2.card-title= user.name
             p.card-text
