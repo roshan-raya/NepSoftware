@@ -46,7 +46,7 @@ class RideController {
     static async submitRideRequest(req, res) {
         try {
             const rideId = parseInt(req.params.id, 10);
-            const passengerId = 1; // In a real app, this would come from the authenticated user
+            const passengerId = req.session.userId; // Get the authenticated user's ID
             
             // Check if the ride exists and has available seats
             const ride = await RideModel.checkRideAvailability(rideId);
@@ -90,13 +90,12 @@ class RideController {
 
     static async rejectRideRequest(req, res) {
         try {
-            const rideId = parseInt(req.params.rideId, 10);
             const requestId = parseInt(req.params.requestId, 10);
             
             // Update the request status
             await RideModel.updateRequestStatus(requestId, "rejected");
             
-            res.redirect(`/rides/${rideId}`);
+            res.redirect(`/rides/${req.params.rideId}`);
         } catch (error) {
             console.error(error);
             res.status(500).send("Error rejecting ride request");
