@@ -1,0 +1,77 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    .row
+      .col-md-3
+        .card.shadow.mb-4
+          .card-header.bg-primary.text-white
+            h5.mb-0 Conversations
+          .list-group.list-group-flush
+            a.list-group-item.list-group-item-action.d-flex.align-items-center(href="/messages")
+              i.fa.fa-arrow-left.me-2
+              | Back to All Conversations
+            
+            if sharedRides && sharedRides.length > 0
+              .list-group-item
+                h6.mb-2 Shared Rides
+                each ride in sharedRides
+                  p.mb-1.small
+                    span.text-muted Ride on 
+                    = formatDate(ride.departure_time)
+                    
+      .col-md-9
+        .card.shadow.mb-4
+          .card-header.bg-primary.text-white.d-flex.justify-content-between.align-items-center
+            h5.mb-0 
+              | Conversation with 
+              strong #{otherUser.name}
+            a.btn.btn-sm.btn-outline-light(href=`/users/${otherUser.id}`) View Profile
+          
+          .card-body.chat-container(style="max-height: 400px; overflow-y: auto;")
+            if messages && messages.length > 0
+              each message in messages
+                - const isCurrentUser = message.sender_id === user.id
+                div(class=`message ${isCurrentUser ? 'message-sent' : 'message-received'} mb-3`)
+                  .d-flex.justify-content-between.align-items-center
+                    strong(class=isCurrentUser ? 'text-primary' : 'text-success')= isCurrentUser ? 'You' : otherUser.name
+                    small.text-muted= formatDate(message.sent_at)
+                  p.mb-0.mt-1= message.message_text
+                  if message.ride_id
+                    small.text-muted
+                      | Related to ride ##{message.ride_id}
+            else
+              .alert.alert-info No messages yet. Start the conversation!
+          
+          .card-footer.bg-light
+            form(action=`/messages/send/${otherUser.id}` method="POST")
+              .input-group
+                if sharedRides && sharedRides.length > 0
+                  select.form-select(name="rideId" style="max-width: 140px")
+                    option(value="") No ride
+                    each ride in sharedRides
+                      option(value=ride.id) Ride ##{ride.id}
+                
+                textarea.form-control(name="message" placeholder="Type your message..." rows="1" required)
+                button.btn.btn-primary(type="submit")
+                  i.fa.fa-paper-plane.me-1
+                  | Send
+
+block styles
+  style.
+    .message {
+      padding: 10px 15px;
+      border-radius: 10px;
+      position: relative;
+      max-width: 80%;
+    }
+    .message-sent {
+      background-color: #e3f2fd;
+      margin-left: auto;
+      border-bottom-right-radius: 0;
+    }
+    .message-received {
+      background-color: #f1f1f1;
+      margin-right: auto;
+      border-bottom-left-radius: 0;
+    }

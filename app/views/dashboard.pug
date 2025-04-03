@@ -1,0 +1,95 @@
+extends layout
+
+block content
+  .container.mt-4
+    .row
+      .col-md-3
+        .card.mb-4.shadow
+          .card-body
+            .text-center.mb-3
+              if user.profile_photo
+                img.img-fluid.rounded-circle.mb-3(src=getProfilePhoto(user.profile_photo) alt=user.name width="150")
+              else
+                img.img-fluid.rounded-circle.mb-3(src=getProfilePhoto() alt=user.name width="150")
+              h4= user.name
+              p.text-muted= user.email
+              
+            .d-grid.gap-2
+              a.btn.btn-outline-primary(href=`/users/${user.id}`) View Profile
+              a.btn.btn-outline-success(href="/messages") Messages
+              if user.is_driver
+                a.btn.btn-primary(href="/rides/create") Offer a Ride
+              else
+                a.btn.btn-secondary(href="/rides/become_driver") Become a Driver
+                
+      .col-md-9
+        .row
+          .col-md-12.mb-4
+            .card.shadow
+              .card-header
+                h5.mb-0 Your Rides
+                if rides && rides.length > 0
+                  small.text-muted #{rides.length} ride(s) offered
+              .card-body
+                if rides && rides.length > 0
+                  .table-responsive
+                    table.table.table-hover
+                      thead
+                        tr
+                          th Departure
+                          th From
+                          th To
+                          th Seats
+                          th Actions
+                      tbody
+                        each ride in rides
+                          tr
+                            td= formatDate(ride.departure_time)
+                            td= ride.pickup_location
+                            td= ride.destination || 'University of Roehampton'
+                            td #{ride.seats_available} seats
+                            td
+                              a.btn.btn-sm.btn-primary(href=`/rides/${ride.id}`) View
+                              a.btn.btn-sm.btn-danger.ms-2(href=`#` onclick=`if(confirm('Are you sure you want to cancel this ride?')) document.getElementById('cancel-ride-${ride.id}').submit(); return false;`) Cancel
+                              form(id=`cancel-ride-${ride.id}` action=`/rides/${ride.id}/cancel` method="POST" style="display: none")
+                else
+                  .alert.alert-info
+                    p You haven't offered any rides yet.
+                    if user.is_driver
+                      a.btn.btn-primary.mt-2(href="/rides/create") Offer a Ride
+                    else
+                      a.btn.btn-secondary.mt-2(href="/rides/become_driver") Become a Driver
+        
+        .row
+          .col-md-12.mb-4
+            .card.shadow
+              .card-header
+                h5.mb-0 Your Ride Requests
+                if requests && requests.length > 0
+                  small.text-muted #{requests.length} request(s)
+              .card-body
+                if requests && requests.length > 0
+                  .table-responsive
+                    table.table.table-hover
+                      thead
+                        tr
+                          th Ride
+                          th From
+                          th Status
+                          th Actions
+                      tbody
+                        each request in requests
+                          - let statusClass = request.status === 'accepted' ? 'text-success' : (request.status === 'rejected' ? 'text-danger' : 'text-warning')
+                          tr
+                            td= formatDate(request.departure_time)
+                            td= request.pickup_location
+                            td(class=statusClass)= request.status.charAt(0).toUpperCase() + request.status.slice(1)
+                            td
+                              a.btn.btn-sm.btn-primary(href=`/rides/${request.ride_id}`) View
+                              if request.status === 'pending'
+                                a.btn.btn-sm.btn-danger.ms-2(href=`#` onclick=`if(confirm('Are you sure you want to cancel this request?')) document.getElementById('cancel-request-${request.id}').submit(); return false;`) Cancel
+                                form(id=`cancel-request-${request.id}` action=`/rides/requests/${request.id}/cancel` method="POST" style="display: none")
+                else
+                  .alert.alert-info
+                    p You haven't requested any rides yet.
+                    a.btn.btn-primary.mt-2(href="/rides") Find a Ride 

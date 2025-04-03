@@ -1,0 +1,28 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .row
+      .col-md-6.offset-md-3
+        .card.shadow
+          .card-header.bg-primary.text-white
+            h2.text-center Login
+          .card-body
+            if error
+              .alert.alert-danger= error
+            
+            form(action="/auth/login" method="POST")
+              .mb-3
+                label.form-label(for="email") Email Address
+                input.form-control#email(type="email" name="email" placeholder="your.name@roehampton.ac.uk" required)
+                small.form-text.text-muted Please use your Roehampton email
+              
+              .mb-3
+                label.form-label(for="password") Password
+                input.form-control#password(type="password" name="password" required)
+              
+              button.btn.btn-primary.w-100(type="submit") Login
+            
+            hr
+            p.text-center Don't have an account? 
+              a(href="/auth/signup") Sign up 

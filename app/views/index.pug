@@ -1,213 +1,211 @@
-doctype html
-html(lang="en")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title Campus Ride Sharing - NepSoftware
-    meta(name="description", content="Convenient, affordable, and eco-friendly rides around campus and beyond.")
-    link(rel="stylesheet", href="styles/main.css")
+extends layout
+
+block content
+  // Hero Section
+  .container-fluid.bg-primary.text-white.py-5
+    .container.py-4
+      .row.align-items-center
+        .col-lg-6
+          h1.display-4.fw-bold Roehampton Ride Sharing
+          p.lead.mb-4 Find affordable, convenient, and eco-friendly rides to and from University of Roehampton.
+          .d-grid.gap-2.d-md-flex.justify-content-md-start
+            a.btn.btn-light.btn-lg.px-4.me-md-2(href="/rides") Find a Ride
+            if user && user.is_driver
+              a.btn.btn-outline-light.btn-lg.px-4(href="/rides/create") Offer a Ride
+            else if user
+              a.btn.btn-outline-light.btn-lg.px-4(href="/rides/become_driver") Become a Driver
+            else
+              a.btn.btn-outline-light.btn-lg.px-4(href="/auth/signup") Sign Up
+        .col-lg-6.d-none.d-lg-block
+          img.img-fluid.rounded.shadow(src="/images/campus-map.jpg" alt="Roehampton Campus Map")
   
-  body
-    .ride-share-app
-      header.header
-        .logo-container
-          h1.logo NepSoftware
-        nav.nav
-          ul.nav-list
-            li.nav-item
-              a.nav-link(href="/") Home
-            li.nav-item
-              a.nav-link(href="/rides") Rides
-            li.nav-item
-              a.nav-link#profile-link(href="#") Profile
-            li.nav-item
-              a.nav-link(href="#") Help
+  // Search Section
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow.mb-5
+          .card-body.p-4
+            h3.card-title.text-center.mb-4 Where are you going?
+            form(action="/rides" method="GET")
+              .row.g-3
+                .col-md-5
+                  label.form-label(for="pickup") Pickup
+                  input.form-control.form-control-lg#pickup_location(type="text" name="pickup" placeholder="Enter pickup location")
+                .col-md-5
+                  label.form-label(for="date") Date
+                  input.form-control.form-control-lg#date(type="date" name="date")
+                .col-md-2.d-flex.align-items-end
+                  button.btn.btn-primary.btn-lg.w-100(type="submit")
+                    i.fas.fa-search.me-2
+                    | Search
+  
+  // Upcoming Rides
+  .container.my-5
+    .d-flex.justify-content-between.align-items-center.mb-4
+      h2 Upcoming Rides
+      a.btn.btn-outline-primary(href="/rides") View All
+    
+    if upcomingRides && upcomingRides.length > 0
+      .row
+        each ride in upcomingRides
+          .col-md-6.col-lg-4.mb-4
+            .card.shadow.ride-card
+              .card-header.bg-light
+                .d-flex.justify-content-between.align-items-center
+                  span
+                    i.fas.fa-calendar.me-2
+                    = formatDate(ride.departure_time)
+                  span.badge.bg-primary
+                    i.fas.fa-chair.me-1
+                    | #{ride.seats_available - (ride.confirmed_passengers || 0)} seats left
+              .card-body
+                h5.card-title
+                  i.fas.fa-map-marker-alt.text-danger.me-2
+                  | #{ride.pickup_location}
+                p.card-text.mb-0
+                  i.fas.fa-arrow-right.text-success.me-2
+                  | #{ride.destination || 'University of Roehampton'}
+                
+                .d-flex.justify-content-between.align-items-center.mt-3
+                  .driver-info.d-flex.align-items-center
+                    img.rounded-circle.me-2(src=getProfilePhoto(ride.driver_photo) alt=ride.driver_name width='40' height='40')
+                    span.fw-bold #{ride.driver_name}
+                  if ride.driver_rating
+                    .rating
+                      != ratingStars(ride.driver_rating)
+                
+                if ride.smoking_allowed
+                  span.badge.bg-secondary.mt-2
+                    i.fas.fa-smoking.me-1
+                    | Smoking allowed
+                
+                if ride.price_per_seat
+                  p.fs-5.fw-bold.text-primary.mt-2 £#{ride.price_per_seat.toFixed(2)} per seat
+              
+              .card-footer.bg-white.border-top-0
+                a.btn.btn-primary.w-100(href=`/rides/${ride.id}`) View Details
+    else
+      .alert.alert-info
+        i.fas.fa-info-circle.me-2
+        | No upcoming rides available at the moment. Please check back later or 
+        a(href="/rides/create") offer a ride
+        |  yourself!
+  
+  // How It Works
+  .container-fluid.bg-light.py-5
+    .container
+      h2.text-center.mb-5 How It Works
+      .row.text-center
+        .col-md-3.mb-4
+          .bg-white.rounded-circle.p-4.mx-auto.mb-3(style="width: 120px; height: 120px")
+            i.fas.fa-search.fa-3x.text-primary
+          h4 Find a Ride
+          p Search for rides to or from the university matching your schedule and preferences.
+        
+        .col-md-3.mb-4
+          .bg-white.rounded-circle.p-4.mx-auto.mb-3(style="width: 120px; height: 120px")
+            i.fas.fa-check-circle.fa-3x.text-primary
+          h4 Book a Seat
+          p Request to join a ride and get confirmation from the driver.
+        
+        .col-md-3.mb-4
+          .bg-white.rounded-circle.p-4.mx-auto.mb-3(style="width: 120px; height: 120px")
+            i.fas.fa-car.fa-3x.text-primary
+          h4 Share the Ride
+          p Meet at the pickup location and enjoy your shared journey.
+        
+        .col-md-3.mb-4
+          .bg-white.rounded-circle.p-4.mx-auto.mb-3(style="width: 120px; height: 120px")
+            i.fas.fa-star.fa-3x.text-primary
+          h4 Rate & Review
+          p After your ride, rate your experience to help others.
+  
+  // Popular Routes
+  .container.my-5
+    h2.text-center.mb-4 Popular Routes
+    #map.mb-4(style="height: 400px;")
+    .row.text-center
+      .col-md-4.mb-4
+        .card.shadow
+          .card-body
+            h5 Campus to Putney Station
+            p.text-muted 2.5 miles, ~10 minutes
+            a.btn.btn-outline-primary(href="/rides?pickup=Putney Station") Find Rides
+      
+      .col-md-4.mb-4
+        .card.shadow
+          .card-body
+            h5 Campus to Barnes Station
+            p.text-muted 3.2 miles, ~12 minutes
+            a.btn.btn-outline-primary(href="/rides?pickup=Barnes Station") Find Rides
+      
+      .col-md-4.mb-4
+        .card.shadow
+          .card-body
+            h5 Campus to Kingston
+            p.text-muted 4.8 miles, ~15 minutes
+            a.btn.btn-outline-primary(href="/rides?pickup=Kingston") Find Rides
 
-      // Auth Modal
-      .auth-modal#auth-modal
-        .auth-container
-          button.auth-close#auth-close &times;
-
-          .auth-tabs
-            .auth-tab.active#login-tab Login
-            .auth-tab#signup-tab Sign Up
-
-          form.auth-form.active#login-form
-            .form-group
-              label(for="login-email") Email
-              input#login-email(type="email", placeholder="Enter your email", required)
-            .form-group
-              label(for="login-password") Password
-              input#login-password(type="password", placeholder="Enter your password", required)
-            button.auth-btn(type="submit") Login
-            .auth-forgot
-              a(href="#") Forgot password?
-
-          form.auth-form#signup-form
-            .form-group
-              label(for="signup-name") Full Name
-              input#signup-name(type="text", placeholder="Enter your full name", required)
-            .form-group
-              label(for="signup-email") Email
-              input#signup-email(type="email", placeholder="Enter your email", required)
-            .form-group
-              label(for="signup-password") Password
-              input#signup-password(type="password", placeholder="Create a password", required)
-            .form-group
-              label(for="signup-confirm") Confirm Password
-              input#signup-confirm(type="password", placeholder="Confirm your password", required)
-            button.auth-btn(type="submit") Sign Up
-
-      section.hero
-        .hero-content
-          h2.hero-title Campus Ride Sharing
-          h3.hero-subtitle Roehampton University of London
-          p.hero-description Convenient, affordable, and eco-friendly rides around campus and beyond.
-          .button-group
-            a.btn.btn-primary(href="/rides") Book a Ride
-            button.btn.btn-secondary Offer a Ride
-
-      section.colleges
-        h2.section-title Our Colleges
-        .colleges-container
-          .college
-            .college-icon.whitelands
-            h3.college-name Whitelands College
-            p.college-info Founded in 1841, the oldest college of the university.
-          .college
-            .college-icon.southlands
-            h3.college-name Southlands College
-            p.college-info Founded in 1872, with Methodist ethos and values.
-          .college
-            .college-icon.digby
-            h3.college-name Digby Stuart College
-            p.college-info Founded in 1874, with Catholic tradition.
-          .college
-            .college-icon.froebel
-            h3.college-name Froebel College
-            p.college-info Founded in 1892, focuses on education and childhood studies.
-
-      section.how-it-works
-        h2.section-title How It Works
-        .steps-container
-          .step
-            .step-icon 1
-            h3.step-title Request
-            p.step-description Enter your pickup location and destination
-          .step
-            .step-icon 2
-            h3.step-title Match
-            p.step-description Get matched with a driver heading your way
-          .step
-            .step-icon 3
-            h3.step-title Ride
-            p.step-description Track your ride and enjoy the journey
-          .step
-            .step-icon 4
-            h3.step-title Pay
-            p.step-description Easy payment through the app
-
-      section.popular-routes
-        h2.section-title Popular Routes
-        .routes-container
-          .route-card
-            h3.route-title Campus to Putney Station
-            p.route-info Distance: 2.5 miles
-            p.route-info Avg. Price: £4
-            a.btn.btn-small(href="/rides") Find Rides
-          .route-card
-            h3.route-title Campus to Richmond Park
-            p.route-info Distance: 3.2 miles
-            p.route-info Avg. Price: £5
-            a.btn.btn-small(href="/rides") Find Rides
-          .route-card
-            h3.route-title Roehampton to Kingston
-            p.route-info Distance: 4.8 miles
-            p.route-info Avg. Price: £6.50
-            a.btn.btn-small(href="/rides") Find Rides
-        .view-all-routes
-          a.btn.btn-large(href="/rides") View All Available Rides
-
-      section.testimonials
-        h2.section-title What Students Say
-        .testimonials-container
-          .testimonial
-            p.testimonial-text "NepSoftware made getting to my early lectures so much easier. No more waiting for buses!"
-            p.testimonial-author - Emma, Business Studies
-          .testimonial
-            p.testimonial-text "I save money and time, plus I've met some great people from other courses."
-            p.testimonial-author - James, Computer Science
-
-      footer.footer
-        .footer-content
-          .footer-section
-            h3.footer-title NepSoftware
-            p.footer-text Roehampton University of London, UK
-            p.footer-text Making campus travel easier.
-          .footer-section
-            h3.footer-title Contact
-            p.footer-text Email: info@nepsoftware.com
-            p.footer-text Phone: +44 20 1234 5678
-          .footer-section
-            h3.footer-title Links
-            ul.footer-links
-              li
-                a(href="#") About Us
-              li
-                a(href="#") Safety
-              li
-                a(href="#") Terms & Conditions
-              li
-                a(href="#") Privacy Policy
-        .footer-bottom
-          p &copy; 2023 NepSoftware - Roehampton University. All rights reserved.
-
-    script.
-      document.addEventListener('DOMContentLoaded', function() {
-        const profileLink = document.getElementById('profile-link');
-        const authModal = document.getElementById('auth-modal');
-        const authClose = document.getElementById('auth-close');
-        const loginTab = document.getElementById('login-tab');
-        const signupTab = document.getElementById('signup-tab');
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-
-        profileLink.addEventListener('click', function(e) {
-          e.preventDefault();
-          authModal.classList.add('active');
+block scripts
+  script(src=`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&callback=initMap` async defer)
+  script.
+    // Initialize the Google Map
+    function initMap() {
+      // Roehampton University coordinates
+      const roehamptonCoords = { lat: 51.4567, lng: -0.2456 };
+      
+      // Popular routes
+      const routes = [
+        { name: "Putney Station", lat: 51.4614, lng: -0.2160 },
+        { name: "Barnes Station", lat: 51.4669, lng: -0.2393 },
+        { name: "Kingston", lat: 51.4148, lng: -0.3006 }
+      ];
+      
+      // Initialize the map centered at Roehampton
+      const map = new google.maps.Map(document.getElementById('map'), {
+        center: roehamptonCoords,
+        zoom: 12,
+        mapTypeControl: false
+      });
+      
+      // Add a marker for Roehampton University
+      const roehamptonMarker = new google.maps.Marker({
+        position: roehamptonCoords,
+        map: map,
+        title: 'University of Roehampton',
+        icon: {
+          url: '/images/map-marker.png',
+          scaledSize: new google.maps.Size(40, 40)
+        }
+      });
+      
+      // Add markers for popular routes
+      routes.forEach(route => {
+        const marker = new google.maps.Marker({
+          position: { lat: route.lat, lng: route.lng },
+          map: map,
+          title: route.name
         });
-
-        authClose.addEventListener('click', function() {
-          authModal.classList.remove('active');
-        });
-
-        authModal.addEventListener('click', function(e) {
-          if (e.target === authModal) {
-            authModal.classList.remove('active');
+        
+        // Draw route line
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer({
+          map: map,
+          suppressMarkers: true,
+          polylineOptions: {
+            strokeColor: '#4285F4',
+            strokeWeight: 4
           }
         });
-
-        loginTab.addEventListener('click', function() {
-          loginTab.classList.add('active');
-          signupTab.classList.remove('active');
-          loginForm.classList.add('active');
-          signupForm.classList.remove('active');
-        });
-
-        signupTab.addEventListener('click', function() {
-          signupTab.classList.add('active');
-          loginTab.classList.remove('active');
-          signupForm.classList.add('active');
-          loginForm.classList.remove('active');
-        });
-
-        loginForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          alert('Login functionality would be implemented here.');
-        });
-
-        signupForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          alert('Sign up functionality would be implemented here.');
+        
+        directionsService.route({
+          origin: roehamptonCoords,
+          destination: { lat: route.lat, lng: route.lng },
+          travelMode: google.maps.TravelMode.DRIVING
+        }, (response, status) => {
+          if (status === 'OK') {
+            directionsRenderer.setDirections(response);
+          }
         });
       });
+    }

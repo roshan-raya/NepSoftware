@@ -1,6 +1,8 @@
 // Import express.js
 const express = require("express");
 const path = require("path");
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 
 // Create express app
 var app = express();
@@ -13,27 +15,114 @@ app.set('view engine', 'pug');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add static files location
+// Cookie and session middleware
+app.use(cookieParser());
+app.use(session({
+    secret: process.env.JWT_SECRET || 'dev_secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Add static files location with improved organization
 app.use(express.static("static"));
 app.use('/css', express.static(path.join(__dirname, '../static/css')));
+app.use('/js', express.static(path.join(__dirname, '../static/js')));
+app.use('/vendor', express.static(path.join(__dirname, '../static/vendor')));
 app.use('/images', express.static(path.join(__dirname, '../static/images')));
-app.use(express.static(path.join(__dirname, '../styles')));
+app.use('/fonts', express.static(path.join(__dirname, '../static/fonts')));
 
 // Add a helper function for profile photos with default fallback
 app.locals.getProfilePhoto = function(photoName) {
-    return '/images/profiles/default.jpg';
+    if (!photoName) return '/images/profiles/default.jpg';
+    return `/images/profiles/${photoName}`;
 };
+
+// Add a helper for formatting dates
+app.locals.formatDate = function(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
+// Add a helper for rating stars
+app.locals.ratingStars = function(rating) {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+    
+    let html = '';
+    for (let i = 0; i < fullStars; i++) {
+        html += '<i class="fas fa-star text-warning"></i>';
+    }
+    
+    if (halfStar) {
+        html += '<i class="fas fa-star-half-alt text-warning"></i>';
+    }
+    
+    for (let i = 0; i < emptyStars; i++) {
+        html += '<i class="far fa-star text-warning"></i>';
+    }
+    
+    return html;
+};
+
+// Import middleware
+const auth = require('./middleware/auth');
 
 // Import routes
 const userRoutes = require('./routes/userRoutes');
 const rideRoutes = require('./routes/rideRoutes');
+const authRoutes = require('./routes/authRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const ratingRoutes = require('./routes/ratingRoutes');
 
 // Get the functions in the db.js file to use
 const db = require('./services/db');
+const MatchingService = require('./services/matchingService');
+
+// Apply authentication check middleware to all routes to make user info available
+app.use(auth.isAuthenticated);
 
 // Create a route for root - /
-app.get("/", function(req, res) {
-    res.render('index');
+app.get("/", async function(req, res) {
+    try {
+        // Get upcoming rides for homepage
+        const upcomingRides = await MatchingService.getUpcomingRides();
+        
+        res.render('index', {
+            title: 'Roehampton Ride Sharing',
+            user: req.user,
+            upcomingRides
+        });
+    } catch (error) {
+        console.error(error);
+        res.render('index', {
+            title: 'Roehampton Ride Sharing',
+            user: req.user,
+            upcomingRides: []
+        });
+    }
+});
+
+// Dashboard route (protected)
+app.get("/dashboard", auth.verifyToken, async function(req, res) {
+    try {
+        // Redirect to auth controller dashboard method
+        res.redirect('/auth/dashboard');
+    } catch (error) {
+        console.error(error);
+        res.status(500).render('error', {
+            message: 'Error loading dashboard',
+            error: { status: 500 }
+        });
+    }
 });
 
 // Create a route for testing the database
@@ -105,6 +194,40 @@ app.get("/diagnostic", async function(req, res) {
             };
         }
         
+        // Test Ratings table
+        try {
+            const ratingsSql = 'SELECT COUNT(*) as count FROM Ratings';
+            const ratingsResult = await db.query(ratingsSql);
+            output.ratings = {
+                success: true,
+                count: ratingsResult[0].count,
+                message: 'Ratings table accessible'
+            };
+        } catch (error) {
+            output.ratings = {
+                success: false,
+                error: error.message,
+                message: 'Error accessing Ratings table'
+            };
+        }
+        
+        // Test Messages table
+        try {
+            const messagesSql = 'SELECT COUNT(*) as count FROM Messages';
+            const messagesResult = await db.query(messagesSql);
+            output.messages = {
+                success: true,
+                count: messagesResult[0].count,
+                message: 'Messages table accessible'
+            };
+        } catch (error) {
+            output.messages = {
+                success: false,
+                error: error.message,
+                message: 'Error accessing Messages table'
+            };
+        }
+        
         // Test a simple join query
         try {
             const joinSql = `
@@ -141,6 +264,9 @@ app.get("/diagnostic", async function(req, res) {
 // Use routes
 app.use("/users", userRoutes);
 app.use("/rides", rideRoutes);
+app.use("/auth", authRoutes);
+app.use("/messages", messageRoutes);
+app.use("/ratings", ratingRoutes);
 
 // Error handler
 app.use(function(err, req, res, next) {

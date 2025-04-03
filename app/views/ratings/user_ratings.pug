@@ -1,0 +1,34 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    .row
+      .col-md-8.offset-md-2
+        .card.shadow.mb-4
+          .card-header.bg-primary.text-white.d-flex.justify-content-between.align-items-center
+            h3.mb-0 #{user.name}'s Ratings
+            .rating-summary
+              span.d-block Average Rating: 
+              .fs-4 !{ratingStars(averageRating)} 
+              span.rating-value (#{averageRating})
+          
+          .card-body
+            if ratings && ratings.length > 0
+              .list-group.list-group-flush
+                each rating in ratings
+                  .list-group-item
+                    .d-flex.justify-content-between.align-items-center.mb-1
+                      .user-info
+                        strong #{rating.rater_name}
+                        span.text-muted.ms-2 on ride from #{rating.pickup_location}
+                      .rating !{ratingStars(rating.rating)}
+                    
+                    if rating.comment
+                      p.mb-1 "#{rating.comment}"
+                    
+                    .text-muted.small= formatDate(rating.created_at)
+            else
+              .alert.alert-info No ratings yet.
+        
+        .mb-3
+          a.btn.btn-outline-secondary(href=`/users/${user.id}`) Back to Profile 

@@ -1,0 +1,75 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    .row
+      .col-lg-7
+        .card.shadow.mb-4
+          .card-header.bg-primary.text-white
+            h3 Find a Ride
+          .card-body
+            form(action="/rides" method="GET")
+              .mb-3
+                label.form-label(for="pickup_location") Pickup Location
+                input.form-control#pickup_location(type="text" name="pickup" placeholder="Enter location or area" required)
+              
+              .row
+                .col-md-6.mb-3
+                  label.form-label(for="date") Date
+                  input.form-control#date(type="date" name="date")
+                
+                .col-md-6.mb-3
+                  label.form-label(for="time") Time Range
+                  .input-group
+                    input.form-control#timeStart(type="time" name="timeStart")
+                    span.input-group-text to
+                    input.form-control#timeEnd(type="time" name="timeEnd")
+              
+              h5.mt-4 Preferences
+              
+              .mb-3
+                label.form-label Smoking Preference
+                .d-flex
+                  .form-check.me-3
+                    input.form-check-input#smoking_no(type="radio" name="smoking" value="not_allowed" checked=userPrefs && userPrefs.non_smoking_preference)
+                    label.form-check-label(for="smoking_no") Non-smoking only
+                  
+                  .form-check.me-3
+                    input.form-check-input#smoking_yes(type="radio" name="smoking" value="allowed" checked=userPrefs && !userPrefs.non_smoking_preference)
+                    label.form-check-label(for="smoking_yes") Smoking allowed
+                  
+                  .form-check
+                    input.form-check-input#smoking_any(type="radio" name="smoking" value="any" checked=!userPrefs)
+                    label.form-check-label(for="smoking_any") No preference
+              
+              .mb-3
+                label.form-label Driver Type
+                .d-flex
+                  .form-check.me-3
+                    input.form-check-input#driver_student(type="radio" name="driverType" value="student" checked=userPrefs && userPrefs.student_only_preference)
+                    label.form-check-label(for="driver_student") Students only
+                  
+                  .form-check.me-3
+                    input.form-check-input#driver_staff(type="radio" name="driverType" value="staff")
+                    label.form-check-label(for="driver_staff") Staff only
+                  
+                  .form-check
+                    input.form-check-input#driver_any(type="radio" name="driverType" value="any" checked=!userPrefs || !userPrefs.student_only_preference)
+                    label.form-check-label(for="driver_any") Any driver
+              
+              .mb-3.form-check
+                input.form-check-input#strictMatch(type="checkbox" name="strictMatch" value="true" checked)
+                label.form-check-label(for="strictMatch") Match my preferences strictly
+              
+              .d-grid.gap-2.mt-4
+                button.btn.btn-primary(type="submit") Search Rides
+                button.btn.btn-outline-primary#search_rides_btn(type="button") Search on Map
+      
+      .col-lg-5
+        .card.shadow.mb-4
+          .card-body.p-0
+            #map(style="height: 400px; width: 100%;")
+
+block scripts
+  script(src=`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initMap` async defer)
+  script(src="/js/maps.js") 

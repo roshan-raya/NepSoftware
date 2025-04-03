@@ -1,0 +1,45 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .row
+      .col-md-6.offset-md-3
+        .card.shadow
+          .card-header.bg-primary.text-white
+            h2.text-center Sign Up
+          .card-body
+            if error
+              .alert.alert-danger= error
+            
+            form(action="/auth/signup" method="POST")
+              .mb-3
+                label.form-label(for="name") Full Name
+                input.form-control#name(type="text" name="name" required)
+              
+              .mb-3
+                label.form-label(for="email") Email Address
+                input.form-control#email(type="email" name="email" placeholder="your.name@roehampton.ac.uk" required)
+                small.form-text.text-muted Must be a Roehampton University email
+              
+              .mb-3
+                label.form-label(for="password") Password
+                input.form-control#password(type="password" name="password" required)
+                small.form-text.text-muted At least 8 characters recommended
+              
+              .mb-3
+                label.form-label(for="confirmPassword") Confirm Password
+                input.form-control#confirmPassword(type="password" name="confirmPassword" required)
+              
+              .mb-3.form-check
+                input.form-check-input#is_smoker(type="checkbox" name="is_smoker")
+                label.form-check-label(for="is_smoker") I am a smoker
+              
+              .mb-3.form-check
+                input.form-check-input#is_driver(type="checkbox" name="is_driver")
+                label.form-check-label(for="is_driver") I want to register as a driver
+              
+              button.btn.btn-primary.w-100(type="submit") Create Account
+            
+            hr
+            p.text-center Already have an account? 
+              a(href="/auth/login") Login 
