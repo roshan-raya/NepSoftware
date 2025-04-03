@@ -56,6 +56,29 @@ class UserModel {
             throw error;
         }
     }
+
+    static async login(email, password) {
+        try {
+            // Hash the password for comparison
+            const hashedPassword = crypto
+                .createHash('sha256')
+                .update(password)
+                .digest('hex');
+
+            // Find user with matching email and password
+            const sql = 'SELECT id, name, email FROM Users WHERE email = ? AND password = ?';
+            const [user] = await db.query(sql, [email, hashedPassword]);
+
+            if (!user) {
+                throw new Error('Invalid email or password');
+            }
+
+            return user;
+        } catch (error) {
+            console.error('Error in login:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = UserModel; 

@@ -107,6 +107,44 @@ class UserController {
             });
         }
     }
+
+    static async login(req, res) {
+        try {
+            const { email, password } = req.body;
+
+            // Validate input
+            if (!email || !password) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Email and password are required' 
+                });
+            }
+
+            // Attempt to login
+            const user = await UserModel.login(email, password);
+            
+            // Set user session
+            req.session.userId = user.id;
+            req.session.userName = user.name;
+
+            res.json({ 
+                success: true, 
+                message: 'Login successful',
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email
+                }
+            });
+        } catch (error) {
+            console.error('Login error:', error);
+            
+            res.status(401).json({ 
+                success: false,
+                error: 'Invalid email or password' 
+            });
+        }
+    }
 }
 
 module.exports = UserController; 
