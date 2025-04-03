@@ -33,16 +33,27 @@ app.locals.getProfilePhoto = function(photoName) {
     return '/images/profiles/default.jpg';
 };
 
+// Middleware to make user data available to all templates
+app.use((req, res, next) => {
+  // Make user data available to all templates
+  res.locals.userId = req.session.userId;
+  res.locals.userName = req.session.userName;
+  next();
+});
+
 // Import routes
 const userRoutes = require('./routes/userRoutes');
 const rideRoutes = require('./routes/rideRoutes');
+const { isAuthenticated } = require('./middleware/auth');
 
 // Get the functions in the db.js file to use
 const db = require('./services/db');
 
 // Create a route for root - /
 app.get("/", function(req, res) {
-    res.render('index');
+    // Check if there's an auth parameter in the query
+    const authRequired = req.query.auth === 'required';
+    res.render('index', { authRequired });
 });
 
 // Create a route for testing the database
@@ -149,7 +160,8 @@ app.get("/diagnostic", async function(req, res) {
 
 // Use routes
 app.use("/users", userRoutes);
-app.use("/rides", rideRoutes);
+// Apply authentication middleware to rides routes
+app.use("/rides", isAuthenticated, rideRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
