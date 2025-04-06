@@ -1,0 +1,127 @@
+extends layout
+
+block content
+  .about-page
+    section.about-hero
+      .container
+        h1.about-title About NepSoftware
+        p.about-subtitle Making Campus Commutes Better Together
+
+    section.about-content
+      .container
+        .about-section
+          h2 Our Mission
+          p We are dedicated to creating a sustainable and efficient transportation solution for the Roehampton University community. Our platform connects drivers and passengers, making campus commutes more convenient, affordable, and environmentally friendly.
+
+        .about-section
+          h2 Our Story
+          p Founded by students, for students, NepSoftware was born out of a need to address transportation challenges on campus. We understand the importance of reliable transportation in student life and are committed to providing a safe and user-friendly platform for all members of our university community.
+
+        .about-section
+          h2 Our Values
+          .values-grid
+            .value-card
+              i.fas.fa-leaf
+              h3 Sustainability
+              p Promoting eco-friendly transportation options and reducing carbon footprint
+            .value-card
+              i.fas.fa-users
+              h3 Community
+              p Building a trusted network of students and staff
+            .value-card
+              i.fas.fa-shield-alt
+              h3 Safety
+              p Ensuring secure and reliable rides for everyone
+            .value-card
+              i.fas.fa-hand-holding-usd
+              h3 Affordability
+              p Making transportation accessible and cost-effective
+
+        .about-section
+          h2 Join Our Community
+          p Whether you're a driver looking to share rides or a passenger seeking convenient transportation, NepSoftware welcomes you to be part of our growing community. Together, we can make campus commutes better for everyone.
+
+    style.
+      .about-page {
+        min-height: 100vh;
+        background-color: #f8f9fa;
+      }
+
+      .about-hero {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+      }
+
+      .about-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .about-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      .about-content {
+        padding: 4rem 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      .about-section {
+        margin-bottom: 4rem;
+      }
+
+      .about-section h2 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-size: 2rem;
+      }
+
+      .about-section p {
+        color: #34495e;
+        line-height: 1.6;
+        font-size: 1.1rem;
+      }
+
+      .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .value-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .value-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .value-card i {
+        font-size: 2.5rem;
+        color: #4a90e2;
+        margin-bottom: 1rem;
+      }
+
+      .value-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+      }
+
+      .value-card p {
+        color: #7f8c8d;
+        font-size: 1rem;
+      } 

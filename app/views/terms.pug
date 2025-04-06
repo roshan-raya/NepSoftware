@@ -1,0 +1,134 @@
+extends layout
+
+block content
+  .terms-page
+    section.terms-hero
+      .container
+        h1.terms-title Terms & Conditions
+        p.terms-subtitle Please read these terms carefully before using our service
+
+    section.terms-content
+      .container
+        .terms-section
+          h2 1. Acceptance of Terms
+          p By accessing and using NepSoftware's ride-sharing platform, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our service.
+
+        .terms-section
+          h2 2. User Accounts
+          ul.terms-list
+            li You must be a current student or staff member of Roehampton University
+            li You must provide accurate and complete information during registration
+            li You are responsible for maintaining the confidentiality of your account
+            li You must notify us immediately of any unauthorized use of your account
+
+        .terms-section
+          h2 3. Service Usage
+          ul.terms-list
+            li The service is intended for personal transportation needs
+            li Users must be at least 18 years old to use the service
+            li Drivers must have a valid driver's license and insurance
+            li All rides must comply with local traffic laws and regulations
+
+        .terms-section
+          h2 4. Payment Terms
+          ul.terms-list
+            li Payment must be made through the platform's approved payment methods
+            li All prices are in GBP and include applicable taxes
+            li Refunds are subject to our refund policy
+            li We reserve the right to modify pricing at any time
+
+        .terms-section
+          h2 5. Safety and Conduct
+          ul.terms-list
+            li Users must follow all safety guidelines
+            li Harassment or inappropriate behavior will not be tolerated
+            li Users must respect each other's privacy
+            li Any safety concerns must be reported immediately
+
+        .terms-section
+          h2 6. Liability
+          p NepSoftware is not responsible for:
+          ul.terms-list
+            li Any accidents or incidents during rides
+            li Lost or damaged property
+            li Delays or cancellations
+            li User disputes
+
+        .terms-section
+          h2 7. Modifications
+          p We reserve the right to modify these terms at any time. Users will be notified of significant changes.
+
+        .terms-section
+          h2 8. Termination
+          p We may terminate or suspend your account at any time for violations of these terms or for any other reason.
+
+    style.
+      .terms-page {
+        min-height: 100vh;
+        background-color: #f8f9fa;
+      }
+
+      .terms-hero {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+      }
+
+      .terms-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .terms-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      .terms-content {
+        padding: 4rem 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      .terms-section {
+        margin-bottom: 3rem;
+      }
+
+      .terms-section h2 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-size: 1.8rem;
+      }
+
+      .terms-section p {
+        color: #34495e;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+      }
+
+      .terms-list {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      .terms-list li {
+        background: white;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+      }
+
+      .terms-list li:before {
+        content: "•";
+        color: #4a90e2;
+        margin-right: 1rem;
+        font-weight: bold;
+      } 

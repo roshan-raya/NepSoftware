@@ -1,0 +1,196 @@
+extends layout
+
+block content
+  .safety-page
+    section.safety-hero
+      .container
+        h1.safety-title Safety First
+        p.safety-subtitle Your Safety is Our Top Priority
+
+    section.safety-content
+      .container
+        .safety-section
+          h2 Safety Guidelines
+          .safety-grid
+            .safety-card
+              i.fas.fa-user-shield
+              h3 Driver Verification
+              p All drivers are verified through our university system and must provide valid identification.
+            .safety-card
+              i.fas.fa-car
+              h3 Vehicle Safety
+              p Drivers must maintain their vehicles in good condition and follow all traffic laws.
+            .safety-card
+              i.fas.fa-map-marker-alt
+              h3 Route Tracking
+              p All rides are tracked in real-time, and you can share your journey with trusted contacts.
+            .safety-card
+              i.fas.fa-comments
+              h3 Communication
+              p Clear communication between drivers and passengers is encouraged for a smooth experience.
+
+        .safety-section
+          h2 For Passengers
+          ul.safety-list
+            li Always verify the driver's identity and vehicle details before getting in
+            li Share your ride details with friends or family
+            li Rate your experience after each ride
+            li Report any concerns immediately
+            li Follow COVID-19 safety guidelines when applicable
+
+        .safety-section
+          h2 For Drivers
+          ul.safety-list
+            li Maintain a clean and safe vehicle
+            li Follow all traffic laws and speed limits
+            li Be courteous and professional
+            li Report any issues with passengers
+            li Keep your vehicle documents up to date
+
+        .safety-section
+          h2 Emergency Contacts
+          .emergency-contacts
+            .contact-card
+              i.fas.fa-phone-alt
+              h3 Campus Security
+              p 24/7 Emergency: +44 20 8392 3333
+            .contact-card
+              i.fas.fa-ambulance
+              h3 Emergency Services
+              p Dial 999 for immediate assistance
+            .contact-card
+              i.fas.fa-headset
+              h3 Support Team
+              p +44 20 1234 5678 (9am-5pm)
+
+    style.
+      .safety-page {
+        min-height: 100vh;
+        background-color: #f8f9fa;
+      }
+
+      .safety-hero {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+      }
+
+      .safety-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .safety-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      .safety-content {
+        padding: 4rem 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      .safety-section {
+        margin-bottom: 4rem;
+      }
+
+      .safety-section h2 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-size: 2rem;
+      }
+
+      .safety-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .safety-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .safety-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .safety-card i {
+        font-size: 2.5rem;
+        color: #4a90e2;
+        margin-bottom: 1rem;
+      }
+
+      .safety-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+      }
+
+      .safety-card p {
+        color: #7f8c8d;
+        font-size: 1rem;
+      }
+
+      .safety-list {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      .safety-list li {
+        background: white;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+      }
+
+      .safety-list li:before {
+        content: "✓";
+        color: #4a90e2;
+        margin-right: 1rem;
+        font-weight: bold;
+      }
+
+      .emergency-contacts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .contact-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+      }
+
+      .contact-card i {
+        font-size: 2rem;
+        color: #e74c3c;
+        margin-bottom: 1rem;
+      }
+
+      .contact-card h3 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+
+      .contact-card p {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+      } 

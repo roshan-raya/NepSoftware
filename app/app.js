@@ -63,6 +63,26 @@ app.get("/", function(req, res) {
     res.render('index', { authRequired });
 });
 
+// Create a route for About Us page
+app.get("/about", function(req, res) {
+    res.render('about');
+});
+
+// Create a route for Safety page
+app.get("/safety", function(req, res) {
+    res.render('safety');
+});
+
+// Create a route for Terms & Conditions
+app.get("/terms", function(req, res) {
+    res.render('terms');
+});
+
+// Create a route for Privacy Policy
+app.get("/privacy", function(req, res) {
+    res.render('privacy');
+});
+
 // Create a route for testing the database
 app.get("/db_test", async function(req, res) {
     try {
