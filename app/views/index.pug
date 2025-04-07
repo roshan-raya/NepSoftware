@@ -6,6 +6,7 @@ html(lang="en")
     title Campus Ride Sharing - NepSoftware
     meta(name="description", content="Convenient, affordable, and eco-friendly rides around campus and beyond.")
     link(rel="stylesheet", href="styles/main.css")
+    link(rel="stylesheet", href="styles/help.css")
     link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
   
   body
@@ -156,6 +157,79 @@ html(lang="en")
           .testimonial
             p.testimonial-text "I save money and time, plus I've met some great people from other courses."
             p.testimonial-author - James, Computer Science
+
+      section.help-section
+        h2.section-title Need Help?
+        .help-container
+          .help-card
+            i.fas.fa-question-circle.help-icon
+            h3.help-title Frequently Asked Questions
+            p.help-description Find answers to common questions about our ride sharing service.
+            button.btn.btn-primary.help-btn#faq-btn View FAQs
+          .help-card
+            i.fas.fa-headset.help-icon
+            h3.help-title Contact Support
+            p.help-description Our support team is available 24/7 to assist you.
+            button.btn.btn-primary.help-btn#contact-btn Contact Us
+          .help-card
+            i.fas.fa-book.help-icon
+            h3.help-title User Guide
+            p.help-description Learn how to make the most of our platform.
+            button.btn.btn-primary.help-btn#guide-btn Read Guide
+
+        // Help Modal
+        .help-modal#help-modal
+          .help-modal-content
+            button.help-close#help-close &times;
+            .help-modal-body
+              #faq-content.help-content
+                h3 Frequently Asked Questions
+                .faq-item
+                  h4 How do I book a ride?
+                  p To book a ride, click the "Book a Ride" button and enter your pickup and drop-off locations. You'll be matched with available drivers.
+                .faq-item
+                  h4 How do I pay for rides?
+                  p Payment is processed securely through the app. You can add your payment method in your profile settings.
+                .faq-item
+                  h4 What if my driver doesn't show up?
+                  p Contact our support team immediately, and we'll help you find an alternative ride.
+              
+              #contact-content.help-content(style="display: none;")
+                h3 Contact Support
+                form.contact-form
+                  .form-group
+                    label(for="contact-name") Your Name
+                    input#contact-name(type="text", required)
+                  .form-group
+                    label(for="contact-email") Email
+                    input#contact-email(type="email", required)
+                  .form-group
+                    label(for="contact-subject") Subject
+                    input#contact-subject(type="text", required)
+                  .form-group
+                    label(for="contact-message") Message
+                    textarea#contact-message(required)
+                  button.btn.btn-primary(type="submit") Send Message
+              
+              #guide-content.help-content(style="display: none;")
+                h3 User Guide
+                .guide-section
+                  h4 Getting Started
+                  p 1. Create an account using your Roehampton email
+                  p 2. Complete your profile with a photo and basic information
+                  p 3. Add a payment method in your profile settings
+                .guide-section
+                  h4 Booking a Ride
+                  p 1. Click "Book a Ride" on the homepage
+                  p 2. Enter your pickup and drop-off locations
+                  p 3. Select your preferred ride option
+                  p 4. Confirm your booking
+                .guide-section
+                  h4 Offering a Ride
+                  p 1. Click "Offer a Ride" on the homepage
+                  p 2. Set your route and available seats
+                  p 3. Set your price per seat
+                  p 4. Publish your ride
 
       footer.footer
         .footer-content
@@ -429,4 +503,58 @@ html(lang="en")
             submitButton.textContent = 'Sign Up';
           }
         });
+
+        // Help section functionality
+        const helpModal = document.getElementById('help-modal');
+        const helpClose = document.getElementById('help-close');
+        const faqBtn = document.getElementById('faq-btn');
+        const contactBtn = document.getElementById('contact-btn');
+        const guideBtn = document.getElementById('guide-btn');
+        const faqContent = document.getElementById('faq-content');
+        const contactContent = document.getElementById('contact-content');
+        const guideContent = document.getElementById('guide-content');
+
+        // Help button click handlers
+        faqBtn.addEventListener('click', function() {
+          helpModal.classList.add('active');
+          faqContent.style.display = 'block';
+          contactContent.style.display = 'none';
+          guideContent.style.display = 'none';
+        });
+
+        contactBtn.addEventListener('click', function() {
+          helpModal.classList.add('active');
+          faqContent.style.display = 'none';
+          contactContent.style.display = 'block';
+          guideContent.style.display = 'none';
+        });
+
+        guideBtn.addEventListener('click', function() {
+          helpModal.classList.add('active');
+          faqContent.style.display = 'none';
+          contactContent.style.display = 'none';
+          guideContent.style.display = 'block';
+        });
+
+        helpClose.addEventListener('click', function() {
+          helpModal.classList.remove('active');
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+          if (event.target === helpModal) {
+            helpModal.classList.remove('active');
+          }
+        });
+
+        // Handle contact form submission
+        const contactForm = document.querySelector('.contact-form');
+        if (contactForm) {
+          contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! Our support team will get back to you soon.');
+            helpModal.classList.remove('active');
+            contactForm.reset();
+          });
+        }
       });
