@@ -1,0 +1,143 @@
+extends layout
+
+block content
+  .help-page
+    section.help-hero
+      .container
+        h1.help-title Help Center
+        p.help-subtitle How can we assist you today?
+
+    section.help-content
+      .container
+        .help-section
+          h2 Frequently Asked Questions
+          .faq-grid
+            .faq-card
+              i.fas.fa-question-circle
+              h3 How do I book a ride?
+              p To book a ride, click on the "Book a Ride" button on the homepage. You'll be able to select your pickup and drop-off locations, and choose from available rides.
+            .faq-card
+              i.fas.fa-car
+              h3 How do I offer a ride?
+              p Click on "Offer a Ride" to create a new ride listing. Fill in the details about your journey, including pickup location, destination, and departure time.
+            .faq-card
+              i.fas.fa-money-bill
+              h3 How does payment work?
+              p Payments are processed securely through our platform. You can add your payment method in your profile settings.
+            .faq-card
+              i.fas.fa-user-shield
+              h3 Is it safe?
+              p Yes, all our drivers are verified through the university system. You can also see driver ratings and reviews before booking.
+
+        .help-section
+          h2 Contact Support
+          .support-grid
+            .support-card
+              i.fas.fa-envelope
+              h3 Email Support
+              p support@nepsoftware.com
+              p Response time: Within 24 hours
+            .support-card
+              i.fas.fa-phone
+              h3 Phone Support
+              p +44 20 1234 5678
+              p Available: 9am - 5pm (GMT)
+            .support-card
+              i.fas.fa-comments
+              h3 Live Chat
+              p Available during business hours
+              p Click the chat icon in the bottom right
+
+    style.
+      .help-page {
+        min-height: 100vh;
+        background-color: #f8f9fa;
+      }
+
+      .help-hero {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+      }
+
+      .help-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .help-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      .help-content {
+        padding: 4rem 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      .help-section {
+        margin-bottom: 4rem;
+      }
+
+      .help-section h2 {
+        color: #2c3e50;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+        text-align: center;
+      }
+
+      .faq-grid, .support-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+      }
+
+      .faq-card, .support-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .faq-card:hover, .support-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .faq-card i, .support-card i {
+        font-size: 2.5rem;
+        color: #4a90e2;
+        margin-bottom: 1rem;
+      }
+
+      .faq-card h3, .support-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+      }
+
+      .faq-card p, .support-card p {
+        color: #7f8c8d;
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      @media screen and (max-width: 768px) {
+        .help-title {
+          font-size: 2rem;
+        }
+
+        .help-section h2 {
+          font-size: 1.8rem;
+        }
+
+        .faq-grid, .support-grid {
+          grid-template-columns: 1fr;
+        }
+      } 

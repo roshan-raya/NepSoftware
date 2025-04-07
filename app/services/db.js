@@ -20,12 +20,45 @@ const config = {
     waitForConnections: true,
     connectionLimit: 5,
     queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
   },
 };
 
-// Create connection pool
-console.log('Creating database connection pool...');
-const pool = mysql.createPool(config.db);
+// Create connection pool with retry logic
+let pool;
+let retryCount = 0;
+const maxRetries = 5;
+const retryDelay = 5000; // 5 seconds
+
+async function createPool() {
+  try {
+    console.log('Creating database connection pool...');
+    pool = mysql.createPool(config.db);
+    
+    // Test the connection
+    const [result] = await pool.query('SELECT 1 as test');
+    console.log('Database connection successful:', result);
+    return true;
+  } catch (error) {
+    console.error('Database connection error:', error);
+    if (error.code) console.error('Error code:', error.code);
+    if (error.errno) console.error('Error number:', error.errno);
+    
+    if (retryCount < maxRetries) {
+      retryCount++;
+      console.log(`Retrying connection in ${retryDelay/1000} seconds... (Attempt ${retryCount}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      return createPool();
+    } else {
+      console.error('Max retries reached. Could not connect to database.');
+      throw error;
+    }
+  }
+}
+
+// Initialize the pool
+createPool();
 
 // Utility function to query the database
 async function query(sql, params) {
@@ -137,4 +170,4 @@ testConnection();
 module.exports = {
   query,
   testConnection
-}
+};
