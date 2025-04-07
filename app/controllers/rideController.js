@@ -1,4 +1,5 @@
 const RideModel = require('../models/rideModel');
+const UserModel = require('../models/userModel');
 
 class RideController {
     static async getRidesList(req, res) {
@@ -138,9 +139,20 @@ class RideController {
 
     static async submitRideRequest(req, res) {
         try {
+            // Check if user is authenticated
+            if (!req.session.userId) {
+                return res.status(401).send("You must be logged in to request a ride");
+            }
+            
             const rideId = parseInt(req.params.id, 10);
             const passengerId = req.session.userId; // Get the authenticated user's ID
             const message = req.body.message || ''; // Get the message from the form
+            
+            // Verify the user exists
+            const user = await UserModel.findById(passengerId);
+            if (!user) {
+                return res.status(400).send("Invalid user ID. Please log out and log in again.");
+            }
             
             // Get ride details to check if user is the driver
             const ride = await RideModel.getRideById(rideId);
