@@ -42,9 +42,35 @@ block content
                     .d-flex.align-items-center.mb-2
                       i.fas.fa-chair.text-success.me-2
                       p.mb-0 Available Seats: #{ride.seats_available}
+                    
+                    .d-flex.align-items-center.mb-2
+                      i.fas.fa-folder.text-info.me-2
+                      p.mb-0 Category: 
+                        a(href=`/rides?category=${encodeURIComponent(ride.category || 'Campus Routes')}`) #{ride.category || 'Campus Routes'}
+                    
+                    .d-flex.align-items-center.mb-2
+                      i.fas.fa-info-circle.me-2
+                      p.mb-0 Status: 
+                        span.badge(class=ride.status === 'Available' ? 'bg-success' : (ride.status === 'Full' ? 'bg-warning' : 'bg-secondary'))
+                          | #{ride.status || 'Available'}
+                    
+                    if ride.preferences
+                      h5.mt-3.mb-2
+                        i.fas.fa-star.text-warning.me-2
+                        | Ride Preferences
+                      ul.list-group.list-group-flush.mb-2
+                        each pref in (ride.preferences || '').split(',')
+                          if pref.trim()
+                            li.list-group-item.py-1.bg-transparent.border-0
+                              i.fas.fa-check-circle.text-success.me-2
+                              | #{pref.trim()}
+                    
                     if ride.tags
-                      .d-flex.flex-wrap.gap-1.mt-3
-                        each tag in ride.tags.split(',')
+                      h5.mt-3.mb-2
+                        i.fas.fa-tag.text-secondary.me-2
+                        | Tags
+                      .d-flex.flex-wrap.gap-1
+                        each tag in (ride.tags || '').split(',')
                           if tag.trim()
                             a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
               
@@ -71,7 +97,7 @@ block content
                 i.fas.fa-handshake.me-2.text-primary
                 | Request to Join
             .card-body
-              if ride.seats_available > 0
+              if ride.status === 'Available' && ride.seats_available > 0
                 if userId
                   form(action=`/rides/${ride.id}/request` method='POST')
                     .mb-3
@@ -99,7 +125,36 @@ block content
               else
                 .alert.alert-warning.d-flex.align-items-center
                   i.fas.fa-exclamation-triangle.me-2
-                  | No seats available for this ride.
+                  if ride.status === 'Full' || ride.seats_available <= 0
+                    | No seats available for this ride.
+                  else if ride.status === 'Completed'
+                    | This ride has been completed.
+                  else
+                    | This ride is no longer available.
+          
+          // Ride Management Card (for driver)
+          if userId && ride.driver_id == userId
+            .card.shadow-sm.mb-4
+              .card-header.bg-white.py-3
+                h3.mb-0
+                  i.fas.fa-cogs.me-2.text-primary
+                  | Manage Ride
+              .card-body
+                h5.mb-3 Update Status
+                form(action=`/rides/${ride.id}/status` method='POST')
+                  .mb-3
+                    select.form-control(name='status')
+                      option(value='Available', selected=ride.status === 'Available') Available
+                      option(value='Full', selected=ride.status === 'Full') Full
+                      option(value='Completed', selected=ride.status === 'Completed') Completed
+                  button.btn.btn-primary.mb-3.w-100(type='submit')
+                    i.fas.fa-sync.me-1
+                    | Update Status
+                
+                form(action=`/rides/${ride.id}/delete` method='POST')
+                  button.btn.btn-danger.w-100(type='submit', onclick="return confirm('Are you sure you want to delete this ride? This action cannot be undone.')")
+                    i.fas.fa-trash.me-1
+                    | Delete Ride
       
       // Ride Requests Section
       if requests && requests.length > 0

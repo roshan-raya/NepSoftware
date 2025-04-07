@@ -120,23 +120,55 @@ block content
             input.form-control(type='text', name='search', placeholder='Search by location or destination', value=search || '')
             if tag
               input(type='hidden', name='tag', value=tag)
+            if category
+              input(type='hidden', name='category', value=category)
+            if status
+              input(type='hidden', name='status', value=status)
+            if preferences
+              input(type='hidden', name='preferences', value=preferences)
             button.btn.btn-primary(type='submit')
               i.fas.fa-search.me-2
               | Search
             if search
-              a.btn.btn-outline-secondary(href=`/rides${tag ? '?tag=' + tag : ''}`)
+              a.btn.btn-outline-secondary(href=`/rides${tag ? '?tag=' + tag : ''}${category ? '&category=' + category : ''}${status ? '&status=' + status : ''}${preferences ? '&preferences=' + preferences : ''}`)
                 i.fas.fa-times
       .col-md-4
         .d-flex.justify-content-end.gap-2
-          if tags && tags.length > 0
-            select.form-select.w-auto(id='tagFilter')
-              option(value='') All Categories
-              each tagOption in tags
-                option(value=tagOption, selected=tag === tagOption)= tagOption
-          if tag
+          if tag || category || status || preferences
             a.btn.btn-outline-secondary(href=`/rides${search ? '?search=' + search : ''}`)
               i.fas.fa-times.me-2
-              | Clear Filter
+              | Clear Filters
+    
+    // Filters
+    .row.mb-4
+      .col-md-3.mb-2
+        label.form-label.fw-bold Tags
+        select.form-select(id='tagFilter')
+          option(value='') All Tags
+          each tagOption in tags || []
+            option(value=tagOption, selected=tag === tagOption)= tagOption
+      
+      .col-md-3.mb-2
+        label.form-label.fw-bold Category
+        select.form-select(id='categoryFilter')
+          option(value='') All Categories
+          each categoryOption in categories || []
+            option(value=categoryOption.category, selected=category === categoryOption.category)= categoryOption.category
+      
+      .col-md-3.mb-2
+        label.form-label.fw-bold Status
+        select.form-select(id='statusFilter')
+          option(value='') All Statuses
+          option(value='Available', selected=status === 'Available') Available
+          option(value='Full', selected=status === 'Full') Full
+          option(value='Completed', selected=status === 'Completed') Completed
+      
+      .col-md-3.mb-2
+        label.form-label.fw-bold Preferences
+        select.form-select(id='preferencesFilter')
+          option(value='') All Preferences
+          each prefOption in availablePreferences || []
+            option(value=prefOption.preference, selected=preferences === prefOption.preference)= prefOption.preference
     
     .row
       each ride in rides
@@ -162,11 +194,36 @@ block content
                   .d-flex.align-items-center.mb-2
                     i.fas.fa-clock.text-primary.me-2
                     small Departure: #{departureDate.toLocaleTimeString()}
+                  
+                  // Category and Status badges
+                  .d-flex.gap-2.mb-2
+                    if ride.category
+                      a.badge.bg-info.text-decoration-none(href=`/rides?category=${encodeURIComponent(ride.category)}`)
+                        i.fas.fa-folder.me-1
+                        | #{ride.category}
+                    if ride.status
+                      span.badge(class=ride.status === 'Available' ? 'bg-success' : (ride.status === 'Full' ? 'bg-warning' : 'bg-secondary'))
+                        i.fas.fa-info-circle.me-1
+                        | #{ride.status}
+                  
+                  // Tags
                   if ride.tags
                     .d-flex.flex-wrap.gap-1.mt-2
                       each tag in (ride.tags || '').split(',')
                         if tag.trim()
-                          a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
+                          a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)
+                            i.fas.fa-tag.me-1
+                            | #{tag.trim()}
+                  
+                  // Preferences
+                  if ride.preferences
+                    .d-flex.flex-wrap.gap-1.mt-2
+                      each pref in (ride.preferences || '').split(',')
+                        if pref.trim()
+                          a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?preferences=${encodeURIComponent(pref.trim())}`)
+                            i.fas.fa-star.me-1
+                            | #{pref.trim()}
+                
                 .col-md-4.text-end
                   .d-flex.flex-column.justify-content-between.h-100
                     .mb-3
@@ -186,31 +243,50 @@ block content
       nav.mt-4(aria-label='Page navigation')
         ul.pagination.justify-content-center
           li.page-item(class=currentPage <= 1 ? 'disabled' : '')
-            a.page-link(href=`/rides?page=${currentPage - 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)
+            a.page-link(href=`/rides?page=${currentPage - 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}${category ? '&category=' + category : ''}${status ? '&status=' + status : ''}${preferences ? '&preferences=' + preferences : ''}`)
               i.fas.fa-chevron-left.me-1
               | Previous
           
           - for (let i = 1; i <= totalPages; i++)
             li.page-item(class=i === currentPage ? 'active' : '')
-              a.page-link(href=`/rides?page=${i}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)= i
+              a.page-link(href=`/rides?page=${i}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}${category ? '&category=' + category : ''}${status ? '&status=' + status : ''}${preferences ? '&preferences=' + preferences : ''}`)= i
           
           li.page-item(class=currentPage >= totalPages ? 'disabled' : '')
-            a.page-link(href=`/rides?page=${currentPage + 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)
+            a.page-link(href=`/rides?page=${currentPage + 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}${category ? '&category=' + category : ''}${status ? '&status=' + status : ''}${preferences ? '&preferences=' + preferences : ''}`)
               | Next
               i.fas.fa-chevron-right.ms-1
 
 block scripts
   script.
+    // Filter handling
     document.getElementById('tagFilter').addEventListener('change', function() {
-      const tag = this.value;
-      const search = new URLSearchParams(window.location.search).get('search') || '';
-      
-      if (tag) {
-        window.location.href = `/rides?tag=${encodeURIComponent(tag)}${search ? '&search=' + encodeURIComponent(search) : ''}`;
-      } else {
-        window.location.href = `/rides${search ? '?search=' + encodeURIComponent(search) : ''}`;
-      }
+      updateFilters('tag', this.value);
     });
+    
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+      updateFilters('category', this.value);
+    });
+    
+    document.getElementById('statusFilter').addEventListener('change', function() {
+      updateFilters('status', this.value);
+    });
+    
+    document.getElementById('preferencesFilter').addEventListener('change', function() {
+      updateFilters('preferences', this.value);
+    });
+    
+    function updateFilters(param, value) {
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      // If value is empty, remove the parameter
+      if (!value) {
+        urlParams.delete(param);
+      } else {
+        urlParams.set(param, value);
+      }
+      
+      window.location.href = '/rides?' + urlParams.toString();
+    }
     
     // Add event listener for search form submission
     document.querySelector('form').addEventListener('submit', function(e) {

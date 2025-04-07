@@ -5,6 +5,7 @@ html
     meta(name='viewport', content='width=device-width, initial-scale=1')
     title #{title} - Ride Sharing App
     link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css')
     link(rel='stylesheet', href='/css/main.css')
   body(class=userId ? 'authenticated' : '')
     nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.mb-4
@@ -13,20 +14,78 @@ html
         button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#navbarNav')
           span.navbar-toggler-icon
         #navbarNav.collapse.navbar-collapse
+          ul.navbar-nav.me-auto
+            li.nav-item
+              a.nav-link(href='/rides')
+                i.fas.fa-car.me-1
+                | Rides
+            li.nav-item.dropdown
+              a.nav-link.dropdown-toggle(href='#', role='button', data-bs-toggle='dropdown')
+                i.fas.fa-search.me-1
+                | Discover
+              ul.dropdown-menu
+                li
+                  a.dropdown-item(href='/rides/tags')
+                    i.fas.fa-tag.me-1
+                    | Tags
+                li
+                  a.dropdown-item(href='/rides/categories')
+                    i.fas.fa-folder.me-1
+                    | Categories
+                li
+                  a.dropdown-item(href='/rides/preferences')
+                    i.fas.fa-star.me-1
+                    | Preferences
+            li.nav-item
+              a.nav-link(href='/users')
+                i.fas.fa-users.me-1
+                | Community
           ul.navbar-nav.ms-auto
-            li.nav-item
-              a.nav-link(href='/users') Users
-            li.nav-item
-              a.nav-link(href='/rides') Listings
-            li.nav-item
-              a.nav-link(href='/tags') Tags
+            if userId
+              li.nav-item
+                a.nav-link(href=`/users/${userId}`)
+                  i.fas.fa-user-circle.me-1
+                  | My Profile
+              li.nav-item
+                a.nav-link.pointer(href='#', id='logoutBtn')
+                  i.fas.fa-sign-out-alt.me-1
+                  | Logout
+            else
+              li.nav-item
+                a.nav-link.pointer(href='#', data-bs-toggle='modal', data-bs-target='#authModal')
+                  i.fas.fa-sign-in-alt.me-1
+                  | Login/Signup
     
     .container
       block content
     
     footer.footer.mt-5.py-3.bg-light
-      .container.text-center
-        p.text-muted &copy; 2023 Ride Sharing App - University of Roehampton
+      .container
+        .row
+          .col-md-4
+            h5 About Ride Sharing
+            p.small Save money, reduce emissions, and make new friends while commuting to Roehampton University.
+          .col-md-4
+            h5 Quick Links
+            ul.list-unstyled.small
+              li
+                a(href='/') Home
+              li
+                a(href='/rides') Available Rides
+              li
+                a(href='/rides/categories') Categories
+              li
+                a(href='/about') About Us
+          .col-md-4
+            h5 Contact Us
+            p.small
+              | University of Roehampton
+              br
+              | London, SW15 5PU
+              br
+              | Email: support@ridesharing.com
+        hr
+        p.text-muted.text-center &copy; 2025 Ride Sharing App - University of Roehampton
     
     script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js')
     script(src='/js/auth.js')

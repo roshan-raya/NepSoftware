@@ -1,4 +1,6 @@
 const UserModel = require('../models/userModel');
+const ReviewModel = require('../models/reviewModel');
+const UserActivityModel = require('../models/userActivityModel');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -67,11 +69,22 @@ class UserController {
             const rides = await UserModel.getUserRides(userId);
             const requests = await UserModel.getUserRequests(userId);
             
+            // Get user ratings and reviews
+            const driverReviews = await ReviewModel.getReviewsForUser(userId, 'driver');
+            const passengerReviews = await ReviewModel.getReviewsForUser(userId, 'passenger');
+            
+            // Get user recent activity
+            const recentActivity = await UserActivityModel.getUserActivities(userId, 5);
+            
             res.render('users_profile', { 
                 title: `${user.name}'s Profile`, 
                 user, 
                 rides, 
-                requests 
+                requests,
+                driverReviews,
+                passengerReviews,
+                recentActivity,
+                isCurrentUser: req.session.userId === userId
             });
         } catch (error) {
             console.error(error);
@@ -333,6 +346,110 @@ class UserController {
             res.status(500).json({
                 success: false,
                 error: 'Failed to update profile photos'
+            });
+        }
+    }
+
+    static async getUserActivity(req, res) {
+        try {
+            const userId = parseInt(req.params.id, 10);
+            
+            // Check if user exists
+            const user = await UserModel.findById(userId);
+            if (!user) {
+                return res.status(404).render('error', { 
+                    message: 'User not found' 
+                });
+            }
+            
+            // Check if user is viewing their own activity or is an admin
+            if (userId !== req.session.userId) {
+                return res.status(403).render('error', { 
+                    message: 'Unauthorized to view this activity' 
+                });
+            }
+            
+            const activities = await UserActivityModel.getUserActivities(userId, 20);
+            const activityStats = await UserActivityModel.getActivityStats(userId);
+            
+            res.render('user_activity', {
+                title: 'Your Activity',
+                user,
+                activities,
+                activityStats
+            });
+        } catch (error) {
+            console.error('Error in getUserActivity:', error);
+            res.status(500).render('error', { 
+                message: 'Error fetching user activity', 
+                error 
+            });
+        }
+    }
+    
+    static async verifyUserAccount(req, res) {
+        try {
+            const userId = parseInt(req.params.id, 10);
+            
+            // Only admin can verify other users (for now)
+            // In real application this would have more robust admin checking
+            // Or verification would be done through email/SMS verification
+            if (req.session.userId !== 1) { // Assuming admin is user ID 1
+                return res.status(403).json({ 
+                    success: false, 
+                    error: 'Unauthorized to verify accounts' 
+                });
+            }
+            
+            await UserModel.verifyUser(userId);
+            
+            res.json({
+                success: true,
+                message: 'User verified successfully'
+            });
+        } catch (error) {
+            console.error('Error in verifyUserAccount:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to verify user'
+            });
+        }
+    }
+    
+    static async getRatingsAndReviews(req, res) {
+        try {
+            const userId = parseInt(req.params.id, 10);
+            const reviewType = req.query.type || 'all'; // 'driver', 'passenger', or 'all'
+            
+            // Check if user exists
+            const user = await UserModel.findById(userId);
+            if (!user) {
+                return res.status(404).render('error', { 
+                    message: 'User not found' 
+                });
+            }
+            
+            let reviews = [];
+            if (reviewType === 'all') {
+                const driverReviews = await ReviewModel.getReviewsForUser(userId, 'driver');
+                const passengerReviews = await ReviewModel.getReviewsForUser(userId, 'passenger');
+                reviews = [...driverReviews, ...passengerReviews];
+            } else {
+                reviews = await ReviewModel.getReviewsForUser(userId, reviewType);
+            }
+            
+            res.render('user_reviews', {
+                title: `${user.name}'s Reviews`,
+                user,
+                reviews,
+                reviewType,
+                isCurrentUser: req.session.userId === userId
+            });
+        } catch (error) {
+            console.error('Error in getRatingsAndReviews:', error);
+            res.status(500).render('error', { 
+                message: 'Error fetching user reviews', 
+                error 
             });
         }
     }
