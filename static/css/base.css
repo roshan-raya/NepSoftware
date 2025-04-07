@@ -44,15 +44,16 @@
   }
   
   .btn-secondary {
-    background-color: white;
-    color: #4361ee;
-    border: 2px solid #4361ee;
+    background-color: #4361ee;
+    color: white;
+    box-shadow: 0 4px 14px rgba(67, 97, 238, 0.4);
     margin-left: 10px;
   }
   
   .btn-secondary:hover {
-    background-color: #f0f3ff;
+    background-color: #3a56d4;
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6);
   }
   
   .btn-small {

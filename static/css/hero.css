@@ -76,6 +76,22 @@
     gap: 15px;
   }
   
+  /* Hero button styles - override any other button styles */
+  .hero .btn-primary,
+  .hero .btn-secondary {
+    background-color: #4361ee;
+    color: white;
+    box-shadow: 0 4px 14px rgba(67, 97, 238, 0.4);
+    border: none;
+  }
+  
+  .hero .btn-primary:hover,
+  .hero .btn-secondary:hover {
+    background-color: #3a56d4;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6);
+  }
+  
   @media screen and (max-width: 768px) {
     .hero {
       padding: 160px 5% 80px;
