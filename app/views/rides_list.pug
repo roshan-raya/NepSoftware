@@ -1,79 +1,97 @@
 extends layout
 
 block content
-  h1.mb-4 Available Rides
-  
-  // Debug information
-  .alert.alert-info
-    p Debug Info:
-    p Rides count: #{rides ? rides.length : 0}
-    if rides && rides.length > 0
-      p First ride ID: #{rides[0].id}
-      p First ride pickup: #{rides[0].pickup_location}
-      p First ride departure: #{rides[0].departure_time}
-    if tag
-      p Active tag filter: #{tag}
-  
-  .row.mb-4
-    .col-md-6
-      form(action='/rides', method='GET')
-        .input-group
-          input.form-control(type='text', name='search', placeholder='Search by location', value=search || '')
+  .container.py-4
+    .d-flex.justify-content-between.align-items-center.mb-4
+      h1.display-4 Available Rides
+      a.btn.btn-primary(href='/rides/new')
+        i.fas.fa-plus.me-2
+        | Offer a Ride
+    
+    .row.mb-4
+      .col-md-8
+        form(action='/rides', method='GET').d-flex.gap-2
+          .input-group
+            span.input-group-text
+              i.fas.fa-search
+            input.form-control(type='text', name='search', placeholder='Search by pickup or destination', value=search || '')
+            if tag
+              input(type='hidden', name='tag', value=tag)
+            button.btn.btn-primary(type='submit')
+              i.fas.fa-search.me-2
+              | Search
+      .col-md-4
+        .d-flex.justify-content-end.gap-2
+          if tags && tags.length > 0
+            select.form-select.w-auto(id='tagFilter')
+              option(value='') All Categories
+              each tagOption in tags
+                option(value=tagOption, selected=tag === tagOption)= tagOption
           if tag
-            input(type='hidden', name='tag', value=tag)
-          button.btn.btn-primary(type='submit') Search
-    .col-md-6
-      .d-flex.justify-content-end
-        if tags && tags.length > 0
-          select.form-select.w-auto(id='tagFilter')
-            option(value='') Filter by tag
-            each tagOption in tags
-              option(value=tagOption, selected=tag === tagOption)= tagOption
-          if tag
-            a.btn.btn-outline-secondary.ms-2(href=`/rides${search ? '?search=' + search : ''}`) Clear Filter
-  
-  .row
-    each ride in rides
-      .col-lg-6.mb-4
-        .card
-          .card-header.d-flex.justify-content-between.align-items-center
-            h5.mb-0 Ride ##{ride.id}
-            - var departureDate = new Date(ride.departure_time)
-            span.badge.bg-primary #{departureDate.toLocaleString()}
-          .card-body
-            .row
-              .col-md-8
-                h5 From: #{ride.pickup_location}
-                p.mb-2 To: #{ride.dropoff_location}
-                p.mb-2
-                  strong Driver: 
-                  a(href=`/users/${ride.driver_id}`) #{ride.driver_name}
-                p.mb-2
-                  strong Seats Available: 
-                  span.badge.bg-success #{ride.seats_available}
-                if ride.tags
-                  p.mb-0
-                    each tag in (ride.tags || '').split(',')
-                      if tag.trim()
-                        a.badge.bg-secondary.me-1(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
-              .col-md-4.text-end
-                a.btn.btn-primary(href=`/rides/${ride.id}`) View Details
-    else
-      .col-12
-        .alert.alert-info No rides found.
-  
-  if totalPages > 1
-    nav(aria-label='Page navigation')
-      ul.pagination.justify-content-center
-        li.page-item(class=currentPage <= 1 ? 'disabled' : '')
-          a.page-link(href=`/rides?page=${currentPage - 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`) Previous
-        
-        - for (let i = 1; i <= totalPages; i++)
-          li.page-item(class=i === currentPage ? 'active' : '')
-            a.page-link(href=`/rides?page=${i}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)= i
-        
-        li.page-item(class=currentPage >= totalPages ? 'disabled' : '')
-          a.page-link(href=`/rides?page=${currentPage + 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`) Next
+            a.btn.btn-outline-secondary(href=`/rides${search ? '?search=' + search : ''}`)
+              i.fas.fa-times.me-2
+              | Clear Filter
+    
+    .row
+      each ride in rides
+        .col-lg-6.mb-4
+          .card.h-100.shadow-sm
+            .card-header.bg-white.d-flex.justify-content-between.align-items-center.py-3
+              .d-flex.align-items-center
+                img.rounded-circle.me-2(src=getProfilePhoto(ride.profile_photo) alt=`${ride.driver_name}'s profile photo` width='40' height='40')
+                .d-flex.flex-column
+                  h5.mb-0 #{ride.driver_name}
+                  small.text-muted Driver
+              - var departureDate = new Date(ride.departure_time)
+              span.badge.bg-primary.fs-6 #{departureDate.toLocaleString()}
+            .card-body
+              .row.g-3
+                .col-md-8
+                  .d-flex.align-items-center.mb-2
+                    i.fas.fa-map-marker-alt.text-danger.me-2
+                    h5.mb-0 From: #{ride.pickup_location}
+                  .d-flex.align-items-center.mb-2
+                    i.fas.fa-flag-checkered.text-success.me-2
+                    h5.mb-0 To: #{ride.dropoff_location}
+                  .d-flex.align-items-center.mb-2
+                    i.fas.fa-clock.text-primary.me-2
+                    small Departure: #{departureDate.toLocaleTimeString()}
+                  if ride.tags
+                    .d-flex.flex-wrap.gap-1.mt-2
+                      each tag in (ride.tags || '').split(',')
+                        if tag.trim()
+                          a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
+                .col-md-4.text-end
+                  .d-flex.flex-column.justify-content-between.h-100
+                    .mb-3
+                      span.badge.bg-success.fs-6
+                        i.fas.fa-chair.me-1
+                        | #{ride.seats_available} seats left
+                    a.btn.btn-primary.w-100(href=`/rides/${ride.id}`)
+                      i.fas.fa-info-circle.me-2
+                      | View Details
+      else
+        .col-12
+          .alert.alert-info.d-flex.align-items-center
+            i.fas.fa-info-circle.me-2
+            | No rides found matching your criteria.
+    
+    if totalPages > 1
+      nav.mt-4(aria-label='Page navigation')
+        ul.pagination.justify-content-center
+          li.page-item(class=currentPage <= 1 ? 'disabled' : '')
+            a.page-link(href=`/rides?page=${currentPage - 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)
+              i.fas.fa-chevron-left.me-1
+              | Previous
+          
+          - for (let i = 1; i <= totalPages; i++)
+            li.page-item(class=i === currentPage ? 'active' : '')
+              a.page-link(href=`/rides?page=${i}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)= i
+          
+          li.page-item(class=currentPage >= totalPages ? 'disabled' : '')
+            a.page-link(href=`/rides?page=${currentPage + 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`)
+              | Next
+              i.fas.fa-chevron-right.ms-1
 
 block scripts
   script.
@@ -85,5 +103,14 @@ block scripts
         window.location.href = `/rides?tag=${encodeURIComponent(tag)}${search ? '&search=' + encodeURIComponent(search) : ''}`;
       } else {
         window.location.href = `/rides${search ? '?search=' + encodeURIComponent(search) : ''}`;
+      }
+    });
+    
+    // Add event listener for search form submission
+    document.querySelector('form[action="/rides"]').addEventListener('submit', function(e) {
+      const searchInput = this.querySelector('input[name="search"]');
+      if (!searchInput.value.trim()) {
+        e.preventDefault();
+        alert('Please enter a search term');
       }
     }); 

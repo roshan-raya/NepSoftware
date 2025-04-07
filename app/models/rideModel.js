@@ -3,7 +3,7 @@ const db = require('../services/db');
 class RideModel {
     static async getAllRides(search = '', tag = '') {
         let sql = `
-            SELECT r.id, r.driver_id, r.departure_time, r.pickup_location, 
+            SELECT r.id, r.driver_id, r.departure_time, r.pickup_location, r.dropoff_location,
                    r.seats_available, r.tags, r.created_at,
                    u.name AS driver_name, u.profile_photo
             FROM Rides r
@@ -14,7 +14,7 @@ class RideModel {
         if (search || tag) {
             let conditions = [];
             if (search) {
-                conditions.push(`r.pickup_location LIKE ?`);
+                conditions.push(`(r.pickup_location LIKE ? OR r.dropoff_location LIKE ?)`);
             }
             if (tag) {
                 conditions.push(`r.tags LIKE ?`);
@@ -22,7 +22,15 @@ class RideModel {
             sql = sql.replace('ORDER BY', `WHERE ${conditions.join(' AND ')} ORDER BY`);
         }
         
-        return await db.query(sql, [search ? `%${search}%` : null, tag ? `%${tag}%` : null]);
+        const params = [];
+        if (search) {
+            params.push(`%${search}%`, `%${search}%`);
+        }
+        if (tag) {
+            params.push(`%${tag}%`);
+        }
+        
+        return await db.query(sql, params);
     }
 
     static async getRideById(id) {
