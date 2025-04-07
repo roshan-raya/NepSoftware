@@ -5,6 +5,10 @@ const RideController = require('../controllers/rideController');
 // Rides listing route
 router.get("/", RideController.getRidesList);
 
+// Ride creation route
+router.get("/offer", RideController.showOfferRideForm);
+router.post("/offer", RideController.createRide);
+
 // Ride detail route
 router.get("/:id", RideController.getRideDetail);
 

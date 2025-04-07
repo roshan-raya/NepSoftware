@@ -1,0 +1,93 @@
+extends layout
+
+block content
+  .container
+    h1.mb-4 Offer a Ride
+    
+    if error
+      .alert.alert-danger #{error}
+    
+    .card
+      .card-body
+        form(action='/rides/offer', method='POST')
+          .mb-3
+            label.form-label(for='pickupLocation') Pickup Location*
+            input.form-control#pickupLocation(
+              type='text', 
+              name='pickupLocation', 
+              placeholder='e.g., Roehampton University Main Gate', 
+              required,
+              value=formData ? formData.pickupLocation : ''
+            )
+          
+          .mb-3
+            label.form-label(for='departureDatetime') Departure Date and Time*
+            input.form-control#departureDatetime(
+              type='datetime-local', 
+              name='departureDatetime', 
+              required,
+              value=formData ? formData.departureDatetime : ''
+            )
+          
+          .mb-3
+            label.form-label(for='seatsAvailable') Available Seats*
+            input.form-control#seatsAvailable(
+              type='number', 
+              name='seatsAvailable', 
+              min='1', 
+              max='8', 
+              required,
+              value=formData ? formData.seatsAvailable : '2'
+            )
+          
+          .mb-3
+            label.form-label(for='tags') Tags (comma separated)
+            input.form-control#tags(
+              type='text', 
+              name='tags', 
+              placeholder='e.g., Morning, Putney, Commute', 
+              value=formData ? formData.tags : ''
+            )
+            small.form-text.text-muted Tags help others find your ride - separate multiple tags with commas.
+          
+          if tags && tags.length > 0
+            .mb-3
+              label.form-label Popular Tags
+              .d-flex.flex-wrap.gap-2
+                each tag in tags
+                  button.btn.btn-sm.btn-outline-secondary.tag-btn(type='button', data-tag=tag.name) #{tag.name}
+          
+          .d-grid.gap-2.d-md-flex.justify-content-md-end
+            a.btn.btn-secondary.me-md-2(href='/rides') Cancel
+            button.btn.btn-primary(type='submit') Offer Ride
+
+block scripts
+  script.
+    // When document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set minimum date to today
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      
+      const todayFormatted = `${yyyy}-${mm}-${dd}T00:00`;
+      document.getElementById('departureDatetime').min = todayFormatted;
+      
+      // Add event listeners to tag buttons
+      const tagButtons = document.querySelectorAll('.tag-btn');
+      const tagsInput = document.getElementById('tags');
+      
+      tagButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const tagValue = this.getAttribute('data-tag');
+          let currentTags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t !== '');
+          
+          // Add tag if not already present
+          if (!currentTags.includes(tagValue)) {
+            currentTags.push(tagValue);
+            tagsInput.value = currentTags.join(', ');
+          }
+        });
+      });
+    }); 

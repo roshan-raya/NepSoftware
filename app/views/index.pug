@@ -85,7 +85,7 @@ html(lang="en")
           p.hero-description Convenient, affordable, and eco-friendly rides around campus and beyond.
           .button-group
             button.btn.btn-primary#book-ride-btn Book a Ride
-            button.btn.btn-secondary Offer a Ride
+            button.btn.btn-secondary#offer-ride-btn Offer a Ride
 
       section.colleges
         h2.section-title Our Colleges
@@ -271,6 +271,7 @@ html(lang="en")
         const photoInput = document.getElementById('signup-photo');
         const photoPreview = document.getElementById('photo-preview');
         const photoWrapper = document.querySelector('.profile-photo-wrapper');
+        const offerRideBtn = document.getElementById('offer-ride-btn');
         
         // Check if user is logged in
         const isLoggedIn = #{!!locals.userId};
@@ -340,6 +341,28 @@ html(lang="en")
             signupTab.classList.remove('active');
             loginForm.classList.add('active');
             signupForm.classList.remove('active');
+            
+            // Store intended action for redirect after login
+            localStorage.setItem('intended_action', 'book');
+          }
+        });
+        
+        // Offer a ride button click handler
+        offerRideBtn.addEventListener('click', function() {
+          if (isLoggedIn) {
+            // If logged in, redirect to offer ride page
+            window.location.href = '/rides/offer';
+          } else {
+            // If not logged in, show auth modal
+            authModal.classList.add('active');
+            // Switch to login tab
+            loginTab.classList.add('active');
+            signupTab.classList.remove('active');
+            loginForm.classList.add('active');
+            signupForm.classList.remove('active');
+            
+            // Store intended action for redirect after login
+            localStorage.setItem('intended_action', 'offer');
           }
         });
         
@@ -417,7 +440,35 @@ html(lang="en")
               profileLink.textContent = `Welcome, ${data.user.name}`;
               profileLink.href = `/users/${data.user.id}`;
               ridesLink.href = '/rides';
-              window.location.reload();
+              
+              // Check if we need to redirect based on localStorage data
+              const intendedAction = localStorage.getItem('intended_action');
+              if (intendedAction && data.checkRedirect) {
+                const intendedRideId = localStorage.getItem('intended_ride_id');
+                
+                switch(intendedAction) {
+                  case 'offer':
+                    window.location.href = '/rides/offer';
+                    break;
+                  case 'book':
+                  case 'request':
+                    if (intendedRideId) {
+                      window.location.href = `/rides/${intendedRideId}`;
+                    } else {
+                      window.location.href = '/rides';
+                    }
+                    break;
+                  default:
+                    window.location.reload();
+                    break;
+                }
+                
+                // Clear the storage
+                localStorage.removeItem('intended_action');
+                localStorage.removeItem('intended_ride_id');
+              } else {
+                window.location.reload();
+              }
             } else {
               alert(data.error || 'Login failed. Please try again.');
             }
@@ -485,12 +536,39 @@ html(lang="en")
             const data = await response.json();
             
             if (data.success) {
-              alert('Registration successful! You can now log in.');
-              // Reset form
-              signupForm.reset();
-              photoPreview.src = '/static/images/profiles/default.jpg';
-              // Switch to login tab
-              loginTab.click();
+              alert('Registration successful! You are now logged in.');
+              
+              // Check if we need to redirect based on localStorage data
+              const intendedAction = localStorage.getItem('intended_action');
+              if (intendedAction && data.checkRedirect) {
+                const intendedRideId = localStorage.getItem('intended_ride_id');
+                
+                switch(intendedAction) {
+                  case 'offer':
+                    window.location.href = '/rides/offer';
+                    break;
+                  case 'book':
+                  case 'request':
+                    if (intendedRideId) {
+                      window.location.href = `/rides/${intendedRideId}`;
+                    } else {
+                      window.location.href = '/rides';
+                    }
+                    break;
+                  default:
+                    window.location.reload();
+                    break;
+                }
+                
+                // Clear the storage
+                localStorage.removeItem('intended_action');
+                localStorage.removeItem('intended_ride_id');
+              } else {
+                // Reset form and reload
+                signupForm.reset();
+                photoPreview.src = '/static/images/profiles/default.jpg';
+                window.location.reload();
+              }
             } else {
               alert(data.error || 'Registration failed. Please try again.');
             }

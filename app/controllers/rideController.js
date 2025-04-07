@@ -43,6 +43,56 @@ class RideController {
         }
     }
 
+    static async showOfferRideForm(req, res) {
+        try {
+            // Get any needed data for the form (like available tags)
+            const tags = await RideModel.getTags();
+            
+            res.render('offer_ride', { 
+                title: 'Offer a Ride',
+                tags
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error loading offer ride form");
+        }
+    }
+
+    static async createRide(req, res) {
+        try {
+            const driverId = req.session.userId; // Get the authenticated user's ID
+            const { departureDatetime, pickupLocation, seatsAvailable, tags } = req.body;
+            
+            // Validate the input
+            if (!departureDatetime || !pickupLocation || !seatsAvailable) {
+                return res.status(400).render('offer_ride', {
+                    title: 'Offer a Ride',
+                    error: 'Please fill all required fields',
+                    formData: req.body
+                });
+            }
+            
+            // Create the new ride
+            const rideId = await RideModel.createRide({
+                driverId,
+                departureDatetime,
+                pickupLocation,
+                seatsAvailable: parseInt(seatsAvailable, 10),
+                tags
+            });
+            
+            // Redirect to the new ride's detail page
+            res.redirect(`/rides/${rideId}`);
+        } catch (error) {
+            console.error(error);
+            res.status(500).render('offer_ride', {
+                title: 'Offer a Ride',
+                error: 'Error creating ride',
+                formData: req.body
+            });
+        }
+    }
+
     static async submitRideRequest(req, res) {
         try {
             const rideId = parseInt(req.params.id, 10);

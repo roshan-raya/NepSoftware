@@ -1,7 +1,16 @@
 extends layout
 
 block content
-  h1.mb-4 Available Rides
+  .d-flex.justify-content-between.align-items-center.mb-4
+    h1 Available Rides
+    if userId 
+      a.btn.btn-success(href='/rides/offer')
+        i.fas.fa-plus.me-2
+        | Offer a Ride
+    else
+      button.btn.btn-success.auth-required(data-action='offer')
+        i.fas.fa-plus.me-2
+        | Offer a Ride
   
   // Debug information
   .alert.alert-info
@@ -57,7 +66,10 @@ block content
                       if tag.trim()
                         a.badge.bg-secondary.me-1(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
               .col-md-4.text-end
-                a.btn.btn-primary(href=`/rides/${ride.id}`) View Details
+                if userId
+                  a.btn.btn-primary(href=`/rides/${ride.id}`) View Details
+                else
+                  button.btn.btn-primary.auth-required(data-ride-id=ride.id data-action='book') View Details
     else
       .col-12
         .alert.alert-info No rides found.
@@ -75,15 +87,56 @@ block content
         li.page-item(class=currentPage >= totalPages ? 'disabled' : '')
           a.page-link(href=`/rides?page=${currentPage + 1}${search ? '&search=' + search : ''}${tag ? '&tag=' + tag : ''}`) Next
 
+  // Login/Signup Modal
+  #authModal.modal.fade(tabindex='-1', aria-labelledby='authModalLabel', aria-hidden='true')
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title#authModalLabel Authentication Required
+          button.btn-close(type='button', data-bs-dismiss='modal', aria-label='Close')
+        .modal-body
+          p.text-center You need to be logged in to access this feature.
+          .d-grid.gap-2
+            a.btn.btn-primary(href='/users/login') Login
+            a.btn.btn-secondary(href='/users/signup') Sign Up
+        .modal-footer
+          button.btn.btn-secondary(type='button', data-bs-dismiss='modal') Close
+
 block scripts
   script.
-    document.getElementById('tagFilter').addEventListener('change', function() {
-      const tag = this.value;
-      const search = new URLSearchParams(window.location.search).get('search') || '';
-      
-      if (tag) {
-        window.location.href = `/rides?tag=${encodeURIComponent(tag)}${search ? '&search=' + encodeURIComponent(search) : ''}`;
-      } else {
-        window.location.href = `/rides${search ? '?search=' + encodeURIComponent(search) : ''}`;
+    document.addEventListener('DOMContentLoaded', function() {
+      // Tag filter change handler
+      const tagFilter = document.getElementById('tagFilter');
+      if (tagFilter) {
+        tagFilter.addEventListener('change', function() {
+          const tag = this.value;
+          const search = new URLSearchParams(window.location.search).get('search') || '';
+          
+          if (tag) {
+            window.location.href = `/rides?tag=${encodeURIComponent(tag)}${search ? '&search=' + encodeURIComponent(search) : ''}`;
+          } else {
+            window.location.href = `/rides${search ? '?search=' + encodeURIComponent(search) : ''}`;
+          }
+        });
       }
+      
+      // Auth required buttons handler
+      const authButtons = document.querySelectorAll('.auth-required');
+      const authModal = new bootstrap.Modal(document.getElementById('authModal'));
+      
+      authButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const action = this.getAttribute('data-action');
+          const rideId = this.getAttribute('data-ride-id');
+          
+          // Show the modal
+          authModal.show();
+          
+          // Store the intended action and ride ID for redirect after login
+          localStorage.setItem('intended_action', action);
+          if (rideId) {
+            localStorage.setItem('intended_ride_id', rideId);
+          }
+        });
+      });
     }); 
