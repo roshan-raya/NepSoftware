@@ -26,6 +26,9 @@ router.post("/:id/request", RideController.submitRideRequest);
 router.post("/:rideId/requests/:requestId/accept", RideController.acceptRideRequest);
 router.post("/:rideId/requests/:requestId/reject", RideController.rejectRideRequest);
 
+// Route to handle driver replies to passenger messages
+router.post("/:rideId/requests/:requestId/reply", RideController.replyToRequest);
+
 // Route to delete a ride
 router.post("/:id/delete", RideController.deleteRide);
 

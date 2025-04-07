@@ -95,9 +95,70 @@ block content
             .card-header.bg-white.py-3
               h3.mb-0
                 i.fas.fa-handshake.me-2.text-primary
-                | Request to Join
+                if userId && ride.driver_id == userId
+                  | Respond to Requests
+                else
+                  | Request to Join
             .card-body
-              if ride.status === 'Available' && ride.seats_available > 0
+              if userId && ride.driver_id == userId
+                // Driver view - show a message about responding to requests
+                .alert.alert-info
+                  i.fas.fa-info-circle.me-2
+                  | As the driver, you can accept or reject ride requests below.
+                if requests && requests.length > 0
+                  .list-group.mb-3
+                    each request in requests
+                      if request.status === 'pending'
+                        .list-group-item
+                          .d-flex.justify-content-between.align-items-start
+                            .d-flex.align-items-start
+                              img.rounded-circle.me-3(src=getProfilePhoto(request.profile_photo) alt=`${request.passenger_name}'s profile photo` width='50' height='50')
+                              .d-flex.flex-column
+                                h6.mb-1 #{request.passenger_name}
+                                small.text-muted.mb-2
+                                  i.far.fa-clock.me-1
+                                  | #{new Date(request.requested_at).toLocaleString()}
+                                if request.message
+                                  .message-box.bg-light.p-2.rounded.mb-2
+                                    small.text-muted
+                                      i.fas.fa-comment-alt.me-1
+                                      | Message:
+                                    p.mb-0.small #{request.message}
+                                    
+                                    // Display driver's reply if it exists
+                                    if request.driver_reply
+                                      .message-box.bg-info.bg-opacity-10.p-2.rounded.mt-2
+                                        small.text-muted
+                                          i.fas.fa-reply.me-1
+                                          | Driver's Reply:
+                                        p.mb-0.small #{request.driver_reply}
+                                    
+                                    // Reply form for drivers
+                                    if request.status === 'accepted' && ride.driver_id == userId
+                                      form.mt-2(action=`/rides/${ride.id}/requests/${request.id}/reply` method='POST')
+                                        .input-group
+                                          input.form-control.form-control-sm(
+                                            type='text'
+                                            name='reply'
+                                            placeholder='Type your reply...'
+                                          )
+                                          button.btn.btn-sm.btn-outline-primary(type='submit')
+                                            i.fas.fa-reply.me-1
+                                            | Reply
+                            .btn-group
+                              form.me-2(action=`/rides/${ride.id}/requests/${request.id}/accept` method='POST')
+                                button.btn.btn-success.btn-sm(type='submit')
+                                  i.fas.fa-check.me-1
+                                  | Accept
+                              form(action=`/rides/${ride.id}/requests/${request.id}/reject` method='POST')
+                                button.btn.btn-danger.btn-sm(type='submit')
+                                  i.fas.fa-times.me-1
+                                  | Reject
+                else
+                  .alert.alert-warning
+                    i.fas.fa-info-circle.me-2
+                    | No pending requests for this ride.
+              else if ride.status === 'Available' && ride.seats_available > 0
                 if userId
                   form(action=`/rides/${ride.id}/request` method='POST')
                     .mb-3
@@ -181,6 +242,27 @@ block content
                               i.fas.fa-comment-alt.me-1
                               | Message:
                             p.mb-0.small #{request.message}
+                            
+                            // Display driver's reply if it exists
+                            if request.driver_reply
+                              .message-box.bg-info.bg-opacity-10.p-2.rounded.mt-2
+                                small.text-muted
+                                  i.fas.fa-reply.me-1
+                                  | Driver's Reply:
+                                p.mb-0.small #{request.driver_reply}
+                            
+                            // Reply form for drivers
+                            if request.status === 'accepted' && ride.driver_id == userId
+                              form.mt-2(action=`/rides/${ride.id}/requests/${request.id}/reply` method='POST')
+                                .input-group
+                                  input.form-control.form-control-sm(
+                                    type='text'
+                                    name='reply'
+                                    placeholder='Type your reply...'
+                                  )
+                                  button.btn.btn-sm.btn-outline-primary(type='submit')
+                                    i.fas.fa-reply.me-1
+                                    | Reply
                     if request.status === 'pending'
                       if ride.driver_id == userId
                         .btn-group

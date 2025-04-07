@@ -173,9 +173,11 @@ class RideController {
             }
             
             // Check if the user already has a request for this ride
-            const hasExistingRequest = await RideModel.checkExistingRequest(rideId, passengerId);
-            if (hasExistingRequest) {
-                return res.status(400).send("You already have a request for this ride");
+            const existingRequest = await RideModel.checkExistingRequest(rideId, passengerId);
+            if (existingRequest && existingRequest.id) {
+                // If there's an existing request, update its message instead of creating a new one
+                await RideModel.updateRequestMessage(existingRequest.id, message);
+                return res.redirect(`/rides/${rideId}`);
             }
             
             // Create the new request with the message
@@ -222,30 +224,64 @@ class RideController {
 
     static async rejectRideRequest(req, res) {
         try {
-            const rideId = parseInt(req.params.rideId, 10);
-            const requestId = parseInt(req.params.requestId, 10);
-            const currentUserId = req.session.userId;
-            
-            // Get ride details to verify the current user is the driver
+            const { rideId, requestId } = req.params;
+            const userId = req.session.userId;
+
+            if (!userId) {
+                return res.status(401).send("You must be logged in to perform this action");
+            }
+
+            // Check if the user is the driver of the ride
             const ride = await RideModel.getRideById(rideId);
-            
-            // Check if the ride exists
-            if (!ride) {
-                return res.status(404).send("Ride not found");
+            if (!ride || ride.driver_id !== userId) {
+                return res.status(403).send("You are not authorized to reject this request");
             }
-            
-            // Verify current user is the driver
-            if (ride.driver_id !== currentUserId) {
-                return res.status(403).send("Only the driver can reject ride requests");
-            }
-            
-            // Update the request status
-            await RideModel.updateRequestStatus(requestId, "rejected");
-            
+
+            // Update the request status to rejected
+            await RideModel.updateRequestStatus(requestId, 'rejected');
+
+            // Redirect back to the ride detail page
             res.redirect(`/rides/${rideId}`);
         } catch (error) {
             console.error(error);
             res.status(500).send("Error rejecting ride request");
+        }
+    }
+
+    static async replyToRequest(req, res) {
+        try {
+            const { rideId, requestId } = req.params;
+            const { reply } = req.body;
+            const userId = req.session.userId;
+
+            if (!userId) {
+                return res.status(401).send("You must be logged in to perform this action");
+            }
+
+            if (!reply || reply.trim() === '') {
+                return res.status(400).send("Reply message cannot be empty");
+            }
+
+            // Check if the user is the driver of the ride
+            const ride = await RideModel.getRideById(rideId);
+            if (!ride || ride.driver_id !== userId) {
+                return res.status(403).send("You are not authorized to reply to this request");
+            }
+
+            // Check if the request exists and is accepted
+            const request = await RideModel.getRequestById(requestId);
+            if (!request || request.ride_id !== parseInt(rideId) || request.status !== 'accepted') {
+                return res.status(404).send("Request not found or not accepted");
+            }
+
+            // Add the reply to the request
+            await RideModel.addRequestReply(requestId, reply);
+
+            // Redirect back to the ride detail page
+            res.redirect(`/rides/${rideId}`);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error replying to request");
         }
     }
 

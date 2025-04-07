@@ -81,8 +81,35 @@ class RideModel {
 
     static async checkExistingRequest(rideId, passengerId) {
         const sql = 'SELECT * FROM Ride_Requests WHERE ride_id = ? AND passenger_id = ?';
-        const requests = await db.query(sql, [rideId, passengerId]);
-        return requests.length > 0;
+        const [request] = await db.query(sql, [rideId, passengerId]);
+        return request;
+    }
+
+    static async updateRequestMessage(requestId, message) {
+        const sql = `
+            UPDATE Ride_Requests
+            SET message = ?, updated_at = NOW()
+            WHERE id = ?
+        `;
+        await db.query(sql, [message, requestId]);
+    }
+
+    static async addRequestReply(requestId, reply) {
+        const sql = `
+            UPDATE Ride_Requests
+            SET driver_reply = ?, reply_updated_at = NOW()
+            WHERE id = ?
+        `;
+        await db.query(sql, [reply, requestId]);
+    }
+
+    static async getRequestById(requestId) {
+        const sql = `
+            SELECT * FROM Ride_Requests
+            WHERE id = ?
+        `;
+        const [request] = await db.query(sql, [requestId]);
+        return request;
     }
 
     static async createRideRequest(rideId, passengerId, message = '') {
