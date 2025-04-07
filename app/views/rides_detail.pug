@@ -31,11 +31,17 @@ block content
           .col-md-6
             h4 Request to Join
             if ride.seats_available > 0
-              form(action=`/rides/${ride.id}/request`, method='POST')
-                .mb-3
-                  label.form-label(for='message') Message to Driver
-                  textarea.form-control(id='message', name='message', rows='3', placeholder='Introduce yourself and explain why you want to join this ride')
-                button.btn.btn-primary(type='submit') Send Request
+              if userId
+                form(action=`/rides/${ride.id}/request`, method='POST')
+                  .mb-3
+                    label.form-label(for='message') Message to Driver
+                    textarea.form-control(id='message', name='message', rows='3', placeholder='Introduce yourself and explain why you want to join this ride')
+                  button.btn.btn-primary(type='submit') Send Request
+              else
+                .card.border-info
+                  .card-body.text-center
+                    p.card-text You need to be logged in to request a ride.
+                    button.btn.btn-primary.auth-required(data-action='request', data-ride-id=ride.id) Request to Join
             else
               .alert.alert-warning No seats available for this ride.
     
@@ -63,4 +69,45 @@ block content
                     span(class=`badge bg-${request.status === 'accepted' ? 'success' : 'danger'}`) 
                       | #{request.status.charAt(0).toUpperCase() + request.status.slice(1)}
   else
-    .alert.alert-danger Ride not found. 
+    .alert.alert-danger Ride not found.
+
+  // Login/Signup Modal
+  #authModal.modal.fade(tabindex='-1', aria-labelledby='authModalLabel', aria-hidden='true')
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title#authModalLabel Authentication Required
+          button.btn-close(type='button', data-bs-dismiss='modal', aria-label='Close')
+        .modal-body
+          p.text-center You need to be logged in to access this feature.
+          .d-grid.gap-2
+            a.btn.btn-primary(href='/users/login') Login
+            a.btn.btn-secondary(href='/users/signup') Sign Up
+        .modal-footer
+          button.btn.btn-secondary(type='button', data-bs-dismiss='modal') Close
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Auth required buttons handler
+      const authButtons = document.querySelectorAll('.auth-required');
+      if (authButtons.length > 0) {
+        const authModal = new bootstrap.Modal(document.getElementById('authModal'));
+        
+        authButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            const rideId = this.getAttribute('data-ride-id');
+            
+            // Show the modal
+            authModal.show();
+            
+            // Store the intended action and ride ID for redirect after login
+            localStorage.setItem('intended_action', action);
+            if (rideId) {
+              localStorage.setItem('intended_ride_id', rideId);
+            }
+          });
+        });
+      }
+    }); 

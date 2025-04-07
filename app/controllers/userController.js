@@ -162,7 +162,9 @@ class UserController {
                     name: name,
                     email: email,
                     photo: photo
-                }
+                },
+                // Let client side know to check for redirects
+                checkRedirect: true
             });
         } catch (error) {
             console.error('Signup error:', error);
@@ -217,7 +219,9 @@ class UserController {
                     name: user.name,
                     email: user.email,
                     photo: user.profile_photo
-                }
+                },
+                // Let client side know to check for redirects
+                checkRedirect: true
             });
         } catch (error) {
             console.error('Login error:', error);
