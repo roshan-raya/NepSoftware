@@ -14,7 +14,7 @@ class RideModel {
         if (search || tag) {
             let conditions = [];
             if (search) {
-                conditions.push(`r.pickup_location LIKE ?`);
+                conditions.push(`(r.pickup_location LIKE ? OR r.tags LIKE ?)`);
             }
             if (tag) {
                 conditions.push(`r.tags LIKE ?`);
@@ -22,7 +22,15 @@ class RideModel {
             sql = sql.replace('ORDER BY', `WHERE ${conditions.join(' AND ')} ORDER BY`);
         }
         
-        return await db.query(sql, [search ? `%${search}%` : null, tag ? `%${tag}%` : null]);
+        const params = [];
+        if (search) {
+            params.push(`%${search}%`, `%${search}%`);
+        }
+        if (tag) {
+            params.push(`%${tag}%`);
+        }
+        
+        return await db.query(sql, params);
     }
 
     static async getRideById(id) {
