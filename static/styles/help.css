@@ -2,6 +2,7 @@
 .help-section {
   padding: 4rem 2rem;
   background-color: #f8f9fa;
+  scroll-margin-top: 80px; /* Add space for fixed header */
 }
 
 .help-container {
@@ -166,4 +167,26 @@
     width: 95%;
     padding: 1.5rem;
   }
+}
+
+/* Active help link in navigation */
+.nav-link[href="#help-section"] {
+  position: relative;
+}
+
+.nav-link[href="#help-section"]::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #007bff;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.nav-link[href="#help-section"]:hover::after,
+.nav-link[href="#help-section"].active::after {
+  transform: scaleX(1);
 } 

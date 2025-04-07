@@ -23,7 +23,7 @@ html(lang="en")
             li.nav-item
               a.nav-link#profile-link(href="#") Profile
             li.nav-item
-              a.nav-link(href="#") Help
+              a.nav-link(href="#help-section") Help
             if locals.userId
               li.nav-item
                 button.btn.btn-danger#logout-btn Logout
@@ -158,7 +158,7 @@ html(lang="en")
             p.testimonial-text "I save money and time, plus I've met some great people from other courses."
             p.testimonial-author - James, Computer Science
 
-      section.help-section
+      section.help-section#help-section
         h2.section-title Need Help?
         .help-container
           .help-card
@@ -556,5 +556,23 @@ html(lang="en")
             helpModal.classList.remove('active');
             contactForm.reset();
           });
+        }
+
+        // Intersection Observer for help section
+        const helpSection = document.getElementById('help-section');
+        const helpLink = document.querySelector('a[href="#help-section"]');
+        
+        if (helpSection && helpLink) {
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                helpLink.classList.add('active');
+              } else {
+                helpLink.classList.remove('active');
+              }
+            });
+          }, { threshold: 0.5 });
+
+          observer.observe(helpSection);
         }
       });
