@@ -18,7 +18,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../static')));
 app.use('/static', express.static(path.join(__dirname, '../static')));
 app.use('/css', express.static(path.join(__dirname, '../static/css')));
-app.use('/js', express.static(path.join(__dirname, '../static/js')));
 app.use('/images', express.static(path.join(__dirname, '../static/images')));
 app.use('/images/profiles', express.static(path.join(__dirname, '../static/images/profiles')));
 

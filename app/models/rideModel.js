@@ -47,30 +47,6 @@ class RideModel {
         return await db.query(sql, [rideId]);
     }
 
-    static async createRide(rideData) {
-        const { driverId, departureDatetime, pickupLocation, seatsAvailable, tags } = rideData;
-        
-        const sql = `
-            INSERT INTO Rides (
-                driver_id, 
-                departure_time, 
-                pickup_location, 
-                seats_available, 
-                tags
-            ) VALUES (?, ?, ?, ?, ?)
-        `;
-        
-        const result = await db.query(sql, [
-            driverId,
-            departureDatetime,
-            pickupLocation,
-            seatsAvailable,
-            tags || null
-        ]);
-        
-        return result.insertId;
-    }
-
     static async checkRideAvailability(rideId) {
         const sql = 'SELECT * FROM Rides WHERE id = ? AND seats_available > 0';
         const [ride] = await db.query(sql, [rideId]);
