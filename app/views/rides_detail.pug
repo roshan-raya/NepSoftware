@@ -30,7 +30,9 @@ block content
           
           .col-md-6
             h4 Request to Join
-            if ride.seats_available > 0
+            if ride.driver_id == userId
+              .alert.alert-info You are the driver of this ride.
+            else if ride.seats_available > 0
               if userId
                 form(action=`/rides/${ride.id}/request`, method='POST')
                   .mb-3
@@ -61,10 +63,13 @@ block content
                 
                 .d-flex
                   if request.status === 'pending'
-                    form.me-2(action=`/rides/${ride.id}/requests/${request.id}/accept`, method='POST')
-                      button.btn.btn-success.btn-sm(type='submit') Accept
-                    form(action=`/rides/${ride.id}/requests/${request.id}/reject`, method='POST')
-                      button.btn.btn-danger.btn-sm(type='submit') Reject
+                    if ride.driver_id == userId
+                      form.me-2(action=`/rides/${ride.id}/requests/${request.id}/accept`, method='POST')
+                        button.btn.btn-success.btn-sm(type='submit') Accept
+                      form(action=`/rides/${ride.id}/requests/${request.id}/reject`, method='POST')
+                        button.btn.btn-danger.btn-sm(type='submit') Reject
+                    else
+                      span.badge.bg-warning Pending
                   else
                     span(class=`badge bg-${request.status === 'accepted' ? 'success' : 'danger'}`) 
                       | #{request.status.charAt(0).toUpperCase() + request.status.slice(1)}

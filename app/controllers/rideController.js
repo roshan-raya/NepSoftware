@@ -98,10 +98,22 @@ class RideController {
             const rideId = parseInt(req.params.id, 10);
             const passengerId = req.session.userId; // Get the authenticated user's ID
             
-            // Check if the ride exists and has available seats
-            const ride = await RideModel.checkRideAvailability(rideId);
+            // Get ride details to check if user is the driver
+            const ride = await RideModel.getRideById(rideId);
+            
+            // Check if the ride exists
             if (!ride) {
-                return res.status(404).send("Ride not found or no seats available");
+                return res.status(404).send("Ride not found");
+            }
+            
+            // Check if the user is the driver of this ride
+            if (ride.driver_id === passengerId) {
+                return res.status(400).send("You cannot request your own ride");
+            }
+            
+            // Check if the ride has available seats
+            if (ride.seats_available <= 0) {
+                return res.status(400).send("No seats available for this ride");
             }
             
             // Check if the user already has a request for this ride
@@ -124,6 +136,20 @@ class RideController {
         try {
             const rideId = parseInt(req.params.rideId, 10);
             const requestId = parseInt(req.params.requestId, 10);
+            const currentUserId = req.session.userId;
+            
+            // Get ride details to verify the current user is the driver
+            const ride = await RideModel.getRideById(rideId);
+            
+            // Check if the ride exists
+            if (!ride) {
+                return res.status(404).send("Ride not found");
+            }
+            
+            // Verify current user is the driver
+            if (ride.driver_id !== currentUserId) {
+                return res.status(403).send("Only the driver can accept ride requests");
+            }
             
             // Update the request status
             await RideModel.updateRequestStatus(requestId, "accepted");
@@ -140,12 +166,27 @@ class RideController {
 
     static async rejectRideRequest(req, res) {
         try {
+            const rideId = parseInt(req.params.rideId, 10);
             const requestId = parseInt(req.params.requestId, 10);
+            const currentUserId = req.session.userId;
+            
+            // Get ride details to verify the current user is the driver
+            const ride = await RideModel.getRideById(rideId);
+            
+            // Check if the ride exists
+            if (!ride) {
+                return res.status(404).send("Ride not found");
+            }
+            
+            // Verify current user is the driver
+            if (ride.driver_id !== currentUserId) {
+                return res.status(403).send("Only the driver can reject ride requests");
+            }
             
             // Update the request status
             await RideModel.updateRequestStatus(requestId, "rejected");
             
-            res.redirect(`/rides/${req.params.rideId}`);
+            res.redirect(`/rides/${rideId}`);
         } catch (error) {
             console.error(error);
             res.status(500).send("Error rejecting ride request");
