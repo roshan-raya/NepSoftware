@@ -5,12 +5,28 @@ class RideController {
         try {
             const search = req.query.search || '';
             const tag = req.query.tag || '';
+            const userId = req.session.userId;
+            
+            // Get all available rides
             const rides = await RideModel.getAllRides(search, tag);
+            
+            // Get user's offered and booked rides if user is logged in
+            let myOfferedRides = [];
+            let myBookedRides = [];
+            
+            if (userId) {
+                myOfferedRides = await RideModel.getRidesByDriver(userId);
+                myBookedRides = await RideModel.getRidesByPassenger(userId);
+            }
+            
             res.render('rides_list', { 
                 title: 'Available Rides', 
                 rides,
                 search,
-                tag
+                tag,
+                myOfferedRides,
+                myBookedRides,
+                user: userId ? true : false
             });
         } catch (error) {
             console.error(error);
@@ -61,10 +77,10 @@ class RideController {
     static async createRide(req, res) {
         try {
             const driverId = req.session.userId; // Get the authenticated user's ID
-            const { departureDatetime, pickupLocation, seatsAvailable, tags } = req.body;
+            const { departureDatetime, pickupLocation, dropoffLocation, seatsAvailable, tags } = req.body;
             
             // Validate the input
-            if (!departureDatetime || !pickupLocation || !seatsAvailable) {
+            if (!departureDatetime || !pickupLocation || !dropoffLocation || !seatsAvailable) {
                 return res.status(400).render('offer_ride', {
                     title: 'Offer a Ride',
                     error: 'Please fill all required fields',
@@ -77,6 +93,7 @@ class RideController {
                 driverId,
                 departureDatetime,
                 pickupLocation,
+                dropoffLocation,
                 seatsAvailable: parseInt(seatsAvailable, 10),
                 tags
             });
@@ -217,6 +234,34 @@ class RideController {
                 message: 'Error fetching tags', 
                 error 
             });
+        }
+    }
+
+    static async deleteRide(req, res) {
+        try {
+            const rideId = parseInt(req.params.id, 10);
+            const userId = req.session.userId;
+            
+            // Get ride details to verify the current user is the driver
+            const ride = await RideModel.getRideById(rideId);
+            
+            // Check if the ride exists
+            if (!ride) {
+                return res.status(404).send("Ride not found");
+            }
+            
+            // Verify current user is the driver
+            if (ride.driver_id !== userId) {
+                return res.status(403).send("Only the driver can delete this ride");
+            }
+            
+            // Delete the ride
+            await RideModel.deleteRide(rideId);
+            
+            res.status(200).send("Ride deleted successfully");
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error deleting ride");
         }
     }
 }

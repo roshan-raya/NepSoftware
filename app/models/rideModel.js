@@ -104,6 +104,48 @@ class RideModel {
         `;
         return await db.query(sql, [tag, `${tag},%`, `%,${tag},%`, `%,${tag}`]);
     }
+
+    static async getRidesByDriver(driverId) {
+        const sql = `
+            SELECT r.*, u.name AS driver_name, u.profile_photo
+            FROM Rides r
+            JOIN Users u ON r.driver_id = u.id
+            WHERE r.driver_id = ?
+            ORDER BY r.departure_time DESC
+        `;
+        return await db.query(sql, [driverId]);
+    }
+
+    static async getRidesByPassenger(passengerId) {
+        const sql = `
+            SELECT r.*, u.name AS driver_name, u.profile_photo
+            FROM Rides r
+            JOIN Users u ON r.driver_id = u.id
+            JOIN Ride_Requests rr ON r.id = rr.ride_id
+            WHERE rr.passenger_id = ? AND rr.status = 'accepted'
+            ORDER BY r.departure_time DESC
+        `;
+        return await db.query(sql, [passengerId]);
+    }
+
+    static async deleteRide(rideId) {
+        // First delete all ride requests for this ride
+        const deleteRequestsSql = 'DELETE FROM Ride_Requests WHERE ride_id = ?';
+        await db.query(deleteRequestsSql, [rideId]);
+        
+        // Then delete the ride
+        const deleteRideSql = 'DELETE FROM Rides WHERE id = ?';
+        return await db.query(deleteRideSql, [rideId]);
+    }
+
+    static async createRide({ driverId, departureDatetime, pickupLocation, dropoffLocation, seatsAvailable, tags }) {
+        const sql = `
+            INSERT INTO Rides (driver_id, departure_time, pickup_location, dropoff_location, seats_available, tags, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
+        `;
+        const result = await db.query(sql, [driverId, departureDatetime, pickupLocation, dropoffLocation, seatsAvailable, tags]);
+        return result.insertId;
+    }
 }
 
 module.exports = RideModel; 

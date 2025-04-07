@@ -15,9 +15,19 @@ block content
             input.form-control#pickupLocation(
               type='text', 
               name='pickupLocation', 
-              placeholder='e.g., Roehampton University Main Gate', 
+              placeholder='e.g., Putney Station', 
               required,
               value=formData ? formData.pickupLocation : ''
+            )
+          
+          .mb-3
+            label.form-label(for='dropoffLocation') Destination*
+            input.form-control#dropoffLocation(
+              type='text', 
+              name='dropoffLocation', 
+              placeholder='e.g., Roehampton University', 
+              required,
+              value=formData ? formData.dropoffLocation : 'Roehampton University'
             )
           
           .mb-3

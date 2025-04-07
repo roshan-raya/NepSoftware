@@ -19,6 +19,9 @@ router.post("/:id/request", RideController.submitRideRequest);
 router.post("/:rideId/requests/:requestId/accept", RideController.acceptRideRequest);
 router.post("/:rideId/requests/:requestId/reject", RideController.rejectRideRequest);
 
+// Route to delete a ride
+router.post("/:id/delete", RideController.deleteRide);
+
 // Tags route
 router.get("/tags", RideController.getTagsList);
 
