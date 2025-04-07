@@ -59,9 +59,9 @@ class RideModel {
         return requests.length > 0;
     }
 
-    static async createRideRequest(rideId, passengerId) {
-        const sql = 'INSERT INTO Ride_Requests (ride_id, passenger_id, status) VALUES (?, ?, "pending")';
-        return await db.query(sql, [rideId, passengerId]);
+    static async createRideRequest(rideId, passengerId, message = '') {
+        const sql = 'INSERT INTO Ride_Requests (ride_id, passenger_id, status, message) VALUES (?, ?, "pending", ?)';
+        return await db.query(sql, [rideId, passengerId, message]);
     }
 
     static async updateRequestStatus(requestId, status) {

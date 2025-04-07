@@ -97,6 +97,7 @@ class RideController {
         try {
             const rideId = parseInt(req.params.id, 10);
             const passengerId = req.session.userId; // Get the authenticated user's ID
+            const message = req.body.message || ''; // Get the message from the form
             
             // Get ride details to check if user is the driver
             const ride = await RideModel.getRideById(rideId);
@@ -122,8 +123,8 @@ class RideController {
                 return res.status(400).send("You already have a request for this ride");
             }
             
-            // Create the new request
-            await RideModel.createRideRequest(rideId, passengerId);
+            // Create the new request with the message
+            await RideModel.createRideRequest(rideId, passengerId, message);
             
             res.redirect(`/rides/${rideId}`);
         } catch (error) {
