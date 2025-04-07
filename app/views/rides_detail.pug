@@ -2,176 +2,84 @@ extends layout
 
 block content
   if ride
-<<<<<<< HEAD
     .container.py-4
       .row
-        .col-lg-8
-          .card.shadow-sm.mb-4
-            .card-header.bg-white.py-3
+        .col-md-8
+          .card.mb-4
+            .card-header
               .d-flex.justify-content-between.align-items-center
                 h2.mb-0 Ride Details
                 span.badge.bg-primary.fs-6 #{new Date(ride.departure_time).toLocaleString()}
             .card-body
-              .row.g-4
+              .row
                 .col-md-6
-                  .location-info.mb-4
-                    h4.mb-3
-                      i.fas.fa-map-marker-alt.text-danger.me-2
-                      | Pickup Location
-                    p.fs-5 #{ride.pickup_location}
-                    
-                    h4.mb-3.mt-4
-                      i.fas.fa-flag-checkered.text-success.me-2
-                      | Destination
-                    p.fs-5 #{ride.dropoff_location}
+                  h4 Pickup Location
+                  p.fs-5 #{ride.pickup_location}
+                  
+                  h4 Driver
+                  .d-flex.align-items-center.mb-3
+                    img.rounded-circle.me-2(src=getProfilePhoto(ride.profile_photo) alt=`${ride.driver_name}'s profile photo` width='50' height='50')
+                    a.fs-5(href=`/users/${ride.driver_id}`) #{ride.driver_name}
+                  
+                  h4 Seats Available
+                  p.fs-5
+                    span.badge.bg-success.fs-6 #{ride.seats_available}
+                  
+                  if ride.tags
+                    h4 Tags
+                    p
+                      each tag in ride.tags.split(',')
+                        a.badge.bg-secondary.me-1.fs-6(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
                 
                 .col-md-6
-                  .ride-info.mb-4
-                    h4.mb-3
-                      i.fas.fa-info-circle.text-primary.me-2
-                      | Ride Information
-                    .d-flex.align-items-center.mb-2
-                      i.fas.fa-clock.text-primary.me-2
-                      p.mb-0 Departure: #{new Date(ride.departure_time).toLocaleTimeString()}
-                    .d-flex.align-items-center.mb-2
-                      i.fas.fa-chair.text-success.me-2
-                      p.mb-0 Available Seats: #{ride.seats_available}
-                    if ride.tags
-                      .d-flex.flex-wrap.gap-1.mt-3
-                        each tag in ride.tags.split(',')
-                          if tag.trim()
-                            a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
-              
-              hr.my-4
-              
-              .driver-info
-                h4.mb-3
-                  i.fas.fa-user.text-primary.me-2
-                  | About the Driver
-                .d-flex.align-items-center
-                  img.rounded-circle.me-3(src=getProfilePhoto(ride.profile_photo) alt=`${ride.driver_name}'s profile photo` width='60' height='60')
-                  .driver-details
-                    h5.mb-1 #{ride.driver_name}
-                    a.btn.btn-outline-primary.btn-sm(href=`/users/${ride.driver_id}`)
-                      i.fas.fa-user-circle.me-1
-                      | View Profile
-        
-        .col-lg-4
-          .card.shadow-sm.mb-4
-            .card-header.bg-white.py-3
-              h3.mb-0 Request to Join
-            .card-body
-              if ride.seats_available > 0
-=======
-    .card.mb-4
-      .card-header
-        .d-flex.justify-content-between.align-items-center
-          h2.mb-0 Ride Details
-          span.badge.bg-primary.fs-6 #{new Date(ride.departure_time).toLocaleString()}
-      .card-body
-        .row
-          .col-md-6
-            h4 Pickup Location
-            p.fs-5 #{ride.pickup_location}
-            
-            h4 Driver
-            .d-flex.align-items-center.mb-3
-              img.rounded-circle.me-2(src=getProfilePhoto(ride.profile_photo) alt=`${ride.driver_name}'s profile photo` width='50' height='50')
-              a.fs-5(href=`/users/${ride.driver_id}`) #{ride.driver_name}
-            
-            h4 Seats Available
-            p.fs-5
-              span.badge.bg-success.fs-6 #{ride.seats_available}
-            
-            if ride.tags
-              h4 Tags
-              p
-                each tag in ride.tags.split(',')
-                  a.badge.bg-secondary.me-1.fs-6(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
-          
-          .col-md-6
-            h4 Request to Join
-            if ride.driver_id == userId
-              .alert.alert-info You are the driver of this ride.
-            else if ride.seats_available > 0
-              if userId
->>>>>>> 04e4b306df35afb95a1e3cc209cf5f4e390c6fca
-                form(action=`/rides/${ride.id}/request`, method='POST')
-                  .mb-3
-                    label.form-label(for='message') Message to Driver
-                    textarea.form-control(id='message', name='message', rows='4', placeholder='Introduce yourself and explain why you want to join this ride')
-                  button.btn.btn-primary.w-100(type='submit')
-                    i.fas.fa-paper-plane.me-2
-                    | Send Request
-              else
-<<<<<<< HEAD
-                .alert.alert-warning.d-flex.align-items-center
-                  i.fas.fa-exclamation-triangle.me-2
-                  | No seats available for this ride.
-          
-          if requests && requests.length > 0
-            .card.shadow-sm
-              .card-header.bg-white.py-3
-                h3.mb-0 Ride Requests
-              .card-body
-                .list-group.list-group-flush
-                  each request in requests
-                    .list-group-item
-                      .d-flex.justify-content-between.align-items-center
-                        .d-flex.align-items-center
-                          img.rounded-circle.me-2(src=getProfilePhoto(request.profile_photo) alt=`${request.passenger_name}'s profile photo` width='40' height='40')
-                          .d-flex.flex-column
-                            h6.mb-0 #{request.passenger_name}
-                            small.text-muted #{new Date(request.created_at).toLocaleString()}
-                        if request.status === 'pending'
-                          .btn-group
-                            form(action=`/rides/${ride.id}/requests/${request.id}/accept`, method='POST').d-inline
-                              button.btn.btn-success.btn-sm(type='submit')
-                                i.fas.fa-check.me-1
-                                | Accept
-                            form(action=`/rides/${ride.id}/requests/${request.id}/reject`, method='POST').d-inline
-                              button.btn.btn-danger.btn-sm(type='submit')
-                                i.fas.fa-times.me-1
-                                | Reject
-                        else
-                          span.badge(class=request.status === 'accepted' ? 'bg-success' : 'bg-danger')= request.status
-=======
-                .card.border-info
-                  .card-body.text-center
-                    p.card-text You need to be logged in to request a ride.
-                    button.btn.btn-primary.auth-required(data-action='request', data-ride-id=ride.id) Request to Join
-            else
-              .alert.alert-warning No seats available for this ride.
-    
-    if requests && requests.length > 0
-      .card
-        .card-header
-          h3.mb-0 Ride Requests
-        .list-group.list-group-flush
-          each request in requests
-            .list-group-item
-              .d-flex.justify-content-between.align-items-center
-                .d-flex.align-items-center
-                  img.rounded-circle.me-2(src=getProfilePhoto(request.profile_photo) alt=`${request.passenger_name}'s profile photo` width='40' height='40')
-                  div
-                    a.fw-bold(href=`/users/${request.passenger_id}`) #{request.passenger_name}
-                    p.mb-0.text-muted Requested: #{new Date(request.requested_at).toLocaleString()}
-                
-                .d-flex
-                  if request.status === 'pending'
-                    if ride.driver_id == userId
-                      form.me-2(action=`/rides/${ride.id}/requests/${request.id}/accept`, method='POST')
-                        button.btn.btn-success.btn-sm(type='submit') Accept
-                      form(action=`/rides/${ride.id}/requests/${request.id}/reject`, method='POST')
-                        button.btn.btn-danger.btn-sm(type='submit') Reject
+                  h4 Request to Join
+                  if ride.driver_id == userId
+                    .alert.alert-info You are the driver of this ride.
+                  else if ride.seats_available > 0
+                    if userId
+                      form(action=`/rides/${ride.id}/request`, method='POST')
+                        .mb-3
+                          label.form-label(for='message') Message to Driver
+                          textarea.form-control(id='message', name='message', rows='4', placeholder='Introduce yourself and explain why you want to join this ride')
+                        button.btn.btn-primary.w-100(type='submit')
+                          i.fas.fa-paper-plane.me-2
+                          | Send Request
                     else
-                      span.badge.bg-warning Pending
+                      .card.border-info
+                        .card-body.text-center
+                          p.card-text You need to be logged in to request a ride.
+                          button.btn.btn-primary.auth-required(data-action='request', data-ride-id=ride.id) Request to Join
                   else
-                    span(class=`badge bg-${request.status === 'accepted' ? 'success' : 'danger'}`) 
-                      | #{request.status.charAt(0).toUpperCase() + request.status.slice(1)}
->>>>>>> 04e4b306df35afb95a1e3cc209cf5f4e390c6fca
+                    .alert.alert-warning No seats available for this ride.
+      
+      if requests && requests.length > 0
+        .card
+          .card-header
+            h3.mb-0 Ride Requests
+          .list-group.list-group-flush
+            each request in requests
+              .list-group-item
+                .d-flex.justify-content-between.align-items-center
+                  .d-flex.align-items-center
+                    img.rounded-circle.me-2(src=getProfilePhoto(request.profile_photo) alt=`${request.passenger_name}'s profile photo` width='40' height='40')
+                    div
+                      a.fw-bold(href=`/users/${request.passenger_id}`) #{request.passenger_name}
+                      p.mb-0.text-muted Requested: #{new Date(request.requested_at).toLocaleString()}
+                  
+                  .d-flex
+                    if request.status === 'pending'
+                      if ride.driver_id == userId
+                        form.me-2(action=`/rides/${ride.id}/requests/${request.id}/accept`, method='POST')
+                          button.btn.btn-success.btn-sm(type='submit') Accept
+                        form(action=`/rides/${ride.id}/requests/${request.id}/reject`, method='POST')
+                          button.btn.btn-danger.btn-sm(type='submit') Reject
+                      else
+                        span.badge.bg-warning Pending
+                    else
+                      span(class=`badge bg-${request.status === 'accepted' ? 'success' : 'danger'}`) 
+                        | #{request.status.charAt(0).toUpperCase() + request.status.slice(1)}
   else
     .container.py-4
-      .alert.alert-danger.d-flex.align-items-center
-        i.fas.fa-exclamation-circle.me-2
-        | Ride not found. 
+      .alert.alert-warning
+        h4.mb-0 Ride Not Found
+        p.mb-0 The ride you're looking for doesn't exist or has been removed. 
