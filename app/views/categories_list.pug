@@ -1,0 +1,84 @@
+extends layout
+
+block content
+  .container.py-4
+    .d-flex.justify-content-between.align-items-center.mb-4
+      h1.display-4 Ride Categories
+      a.btn.btn-primary(href='/rides')
+        i.fas.fa-arrow-left.me-2
+        | Back to Rides
+    
+    .row
+      .col-md-4
+        .card.mb-4.shadow-sm
+          .card-header.bg-white.py-3
+            h3.mb-0
+              i.fas.fa-folder.me-2.text-primary
+              | Categories
+          .card-body.p-0
+            .list-group.list-group-flush
+              each category in categories
+                a.list-group-item.list-group-item-action.d-flex.justify-content-between.align-items-center(
+                  href=`/rides/categories?category=${encodeURIComponent(category.category)}`, 
+                  class=selectedCategory === category.category ? 'active' : ''
+                )
+                  div
+                    i.fas.fa-folder.me-2
+                    | #{category.category}
+                  span.badge.bg-primary.rounded-pill #{category.ride_count}
+      
+      .col-md-8
+        if selectedCategory
+          .card.mb-4.shadow-sm
+            .card-header.bg-white.py-3
+              h3.mb-0.d-flex.justify-content-between.align-items-center
+                div
+                  i.fas.fa-car.me-2.text-primary
+                  | Rides in "#{selectedCategory}"
+                a.btn.btn-sm.btn-outline-primary(href='/rides/categories')
+                  i.fas.fa-times.me-1
+                  | Clear
+            .card-body
+              if categorizedRides && categorizedRides.length > 0
+                .row
+                  each ride in categorizedRides
+                    .col-lg-6.mb-4
+                      .card.h-100.shadow-sm
+                        .card-header.bg-white.d-flex.justify-content-between.align-items-center.py-3
+                          .d-flex.align-items-center
+                            img.rounded-circle.me-2(src=getProfilePhoto(ride.profile_photo) alt=`${ride.driver_name}'s profile photo` width='40' height='40')
+                            .d-flex.flex-column
+                              h5.mb-0 #{ride.driver_name}
+                              small.text-muted Driver
+                          - var departureDate = new Date(ride.departure_time)
+                          span.badge.bg-primary.fs-6 #{departureDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        .card-body
+                          .location.mb-3
+                            p.mb-1
+                              i.fas.fa-map-marker-alt.text-danger.me-2
+                              strong From:
+                              |  #{ride.pickup_location}
+                            p.mb-0
+                              i.fas.fa-flag-checkered.text-success.me-2
+                              strong To:
+                              |  #{ride.dropoff_location || 'Roehampton University'}
+                          
+                          .status.mb-3
+                            span.badge(class=ride.status === 'Available' ? 'bg-success' : (ride.status === 'Full' ? 'bg-warning' : 'bg-secondary'))
+                              i.fas.fa-info-circle.me-1
+                              | #{ride.status || 'Available'}
+                            span.badge.bg-primary.ms-2
+                              i.fas.fa-chair.me-1
+                              | #{ride.seats_available} seats
+                          
+                          a.btn.btn-primary.w-100(href=`/rides/${ride.id}`)
+                            i.fas.fa-info-circle.me-2
+                            | View Details
+              else
+                .alert.alert-info
+                  i.fas.fa-info-circle.me-2
+                  | No rides found in this category.
+        else
+          .alert.alert-info
+            i.fas.fa-info-circle.me-2
+            | Select a category from the list to view rides. 

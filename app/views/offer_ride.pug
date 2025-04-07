@@ -51,6 +51,35 @@ block content
             )
           
           .mb-3
+            label.form-label(for='category') Ride Category*
+            select.form-control#category(name='category', required)
+              option(value='Campus Routes', selected=formData && formData.category === 'Campus Routes') Campus Routes
+              option(value='Shopping Trips', selected=formData && formData.category === 'Shopping Trips') Shopping Trips
+              option(value='Airport Transfers', selected=formData && formData.category === 'Airport Transfers') Airport Transfers
+              option(value='Special Events', selected=formData && formData.category === 'Special Events') Special Events
+              option(value='Weekend Getaways', selected=formData && formData.category === 'Weekend Getaways') Weekend Getaways
+            small.form-text.text-muted Select the category that best describes your ride.
+          
+          .mb-3
+            label.form-label Ride Preferences
+            .form-check
+              input.form-check-input#quietRide(type='checkbox', name='preferences', value='Quiet Ride', checked=formData && formData.preferences && formData.preferences.includes('Quiet Ride'))
+              label.form-check-label(for='quietRide') Quiet Ride
+            .form-check
+              input.form-check-input#musicAllowed(type='checkbox', name='preferences', value='Music Allowed', checked=formData && formData.preferences && formData.preferences.includes('Music Allowed'))
+              label.form-check-label(for='musicAllowed') Music Allowed
+            .form-check
+              input.form-check-input#petFriendly(type='checkbox', name='preferences', value='Pet Friendly', checked=formData && formData.preferences && formData.preferences.includes('Pet Friendly'))
+              label.form-check-label(for='petFriendly') Pet Friendly
+            .form-check
+              input.form-check-input#smokingAllowed(type='checkbox', name='preferences', value='Smoking Allowed', checked=formData && formData.preferences && formData.preferences.includes('Smoking Allowed'))
+              label.form-check-label(for='smokingAllowed') Smoking Allowed
+            .form-check
+              input.form-check-input#longTermParking(type='checkbox', name='preferences', value='Long-Term Parking Available', checked=formData && formData.preferences && formData.preferences.includes('Long-Term Parking Available'))
+              label.form-check-label(for='longTermParking') Long-Term Parking Available
+            small.form-text.text-muted Select all that apply to your ride.
+          
+          .mb-3
             label.form-label(for='tags') Tags (comma separated)
             input.form-control#tags(
               type='text', 
@@ -99,5 +128,27 @@ block scripts
             tagsInput.value = currentTags.join(', ');
           }
         });
+      });
+      
+      // Handle checkbox preferences
+      document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get all checked preferences
+        const preferenceCheckboxes = document.querySelectorAll('input[name="preferences"]:checked');
+        const selectedPreferences = Array.from(preferenceCheckboxes).map(cb => cb.value);
+        
+        // Create a hidden input with combined preferences
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'preferences';
+        input.value = selectedPreferences.join(',');
+        
+        // Replace checkboxes with the hidden input
+        preferenceCheckboxes.forEach(cb => cb.removeAttribute('name'));
+        this.appendChild(input);
+        
+        // Submit the form
+        this.submit();
       });
     }); 

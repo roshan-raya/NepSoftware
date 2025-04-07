@@ -5,10 +5,13 @@ class RideController {
         try {
             const search = req.query.search || '';
             const tag = req.query.tag || '';
+            const category = req.query.category || '';
+            const status = req.query.status || '';
+            const preferences = req.query.preferences || '';
             const userId = req.session.userId;
             
             // Get all available rides
-            const rides = await RideModel.getAllRides(search, tag);
+            const rides = await RideModel.getAllRides(search, tag, category, status, preferences);
             
             // Get user's offered and booked rides if user is logged in
             let myOfferedRides = [];
@@ -19,11 +22,20 @@ class RideController {
                 myBookedRides = await RideModel.getRidesByPassenger(userId);
             }
             
+            // Get ride categories and preferences for filtering
+            const categories = await RideModel.getCategories();
+            const availablePreferences = await RideModel.getPreferences();
+            
             res.render('rides_list', { 
                 title: 'Available Rides', 
                 rides,
                 search,
                 tag,
+                category,
+                status,
+                preferences,
+                categories,
+                availablePreferences,
                 myOfferedRides,
                 myBookedRides,
                 user: userId ? true : false
@@ -63,10 +75,14 @@ class RideController {
         try {
             // Get any needed data for the form (like available tags)
             const tags = await RideModel.getTags();
+            const categories = await RideModel.getCategories();
+            const preferences = await RideModel.getPreferences();
             
             res.render('offer_ride', { 
                 title: 'Offer a Ride',
-                tags
+                tags,
+                categories,
+                preferences
             });
         } catch (error) {
             console.error(error);
@@ -77,7 +93,15 @@ class RideController {
     static async createRide(req, res) {
         try {
             const driverId = req.session.userId; // Get the authenticated user's ID
-            const { departureDatetime, pickupLocation, dropoffLocation, seatsAvailable, tags } = req.body;
+            const { 
+                departureDatetime, 
+                pickupLocation, 
+                dropoffLocation, 
+                seatsAvailable, 
+                tags,
+                category = 'Campus Routes',
+                preferences = ''
+            } = req.body;
             
             // Validate the input
             if (!departureDatetime || !pickupLocation || !dropoffLocation || !seatsAvailable) {
@@ -95,7 +119,9 @@ class RideController {
                 pickupLocation,
                 dropoffLocation,
                 seatsAvailable: parseInt(seatsAvailable, 10),
-                tags
+                tags,
+                category,
+                preferences
             });
             
             // Redirect to the new ride's detail page
@@ -234,6 +260,85 @@ class RideController {
                 message: 'Error fetching tags', 
                 error 
             });
+        }
+    }
+
+    static async getCategoriesList(req, res) {
+        try {
+            const categories = await RideModel.getCategories();
+            const selectedCategory = req.query.category;
+            let categorizedRides = [];
+            
+            if (selectedCategory) {
+                categorizedRides = await RideModel.getRidesByCategory(selectedCategory);
+            }
+            
+            res.render('categories_list', { 
+                title: 'Ride Categories', 
+                categories, 
+                selectedCategory, 
+                categorizedRides 
+            });
+        } catch (error) {
+            console.error('Error in /categories route:', error);
+            res.status(500).render('error', { 
+                message: 'Error fetching categories', 
+                error 
+            });
+        }
+    }
+
+    static async getPreferencesList(req, res) {
+        try {
+            const preferences = await RideModel.getPreferences();
+            const selectedPreference = req.query.preference;
+            let preferencedRides = [];
+            
+            if (selectedPreference) {
+                preferencedRides = await RideModel.getRidesByPreference(selectedPreference);
+            }
+            
+            res.render('preferences_list', { 
+                title: 'Ride Preferences', 
+                preferences, 
+                selectedPreference, 
+                preferencedRides 
+            });
+        } catch (error) {
+            console.error('Error in /preferences route:', error);
+            res.status(500).render('error', { 
+                message: 'Error fetching preferences', 
+                error 
+            });
+        }
+    }
+
+    static async updateRideStatus(req, res) {
+        try {
+            const rideId = parseInt(req.params.id, 10);
+            const { status } = req.body;
+            const userId = req.session.userId;
+            
+            // Get ride details to verify the current user is the driver
+            const ride = await RideModel.getRideById(rideId);
+            
+            // Check if the ride exists
+            if (!ride) {
+                return res.status(404).send("Ride not found");
+            }
+            
+            // Verify current user is the driver
+            if (ride.driver_id !== userId) {
+                return res.status(403).send("Only the driver can update ride status");
+            }
+            
+            // Update the ride status
+            await RideModel.updateRideStatus(rideId, status);
+            
+            res.redirect(`/rides/${rideId}`);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error updating ride status");
         }
     }
 

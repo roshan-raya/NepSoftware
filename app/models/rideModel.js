@@ -1,23 +1,32 @@
 const db = require('../services/db');
 
 class RideModel {
-    static async getAllRides(search = '', tag = '') {
+    static async getAllRides(search = '', tag = '', category = '', status = '', preferences = '') {
         let sql = `
             SELECT r.id, r.driver_id, r.departure_time, r.pickup_location, 
-                   r.seats_available, r.tags, r.created_at,
+                   r.seats_available, r.tags, r.category, r.status, r.preferences, r.created_at,
                    u.name AS driver_name, u.profile_photo
             FROM Rides r
             JOIN Users u ON r.driver_id = u.id
             ORDER BY r.departure_time
         `;
         
-        if (search || tag) {
+        if (search || tag || category || status || preferences) {
             let conditions = [];
             if (search) {
                 conditions.push(`(r.pickup_location LIKE ? OR r.tags LIKE ?)`);
             }
             if (tag) {
                 conditions.push(`r.tags LIKE ?`);
+            }
+            if (category) {
+                conditions.push(`r.category = ?`);
+            }
+            if (status) {
+                conditions.push(`r.status = ?`);
+            }
+            if (preferences) {
+                conditions.push(`r.preferences LIKE ?`);
             }
             sql = sql.replace('ORDER BY', `WHERE ${conditions.join(' AND ')} ORDER BY`);
         }
@@ -28,6 +37,15 @@ class RideModel {
         }
         if (tag) {
             params.push(`%${tag}%`);
+        }
+        if (category) {
+            params.push(category);
+        }
+        if (status) {
+            params.push(status);
+        }
+        if (preferences) {
+            params.push(`%${preferences}%`);
         }
         
         return await db.query(sql, params);
@@ -138,13 +156,73 @@ class RideModel {
         return await db.query(deleteRideSql, [rideId]);
     }
 
-    static async createRide({ driverId, departureDatetime, pickupLocation, dropoffLocation, seatsAvailable, tags }) {
+    static async createRide({ driverId, departureDatetime, pickupLocation, dropoffLocation, seatsAvailable, tags, category, preferences }) {
         const sql = `
-            INSERT INTO Rides (driver_id, departure_time, pickup_location, dropoff_location, seats_available, tags, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, NOW())
+            INSERT INTO Rides (driver_id, departure_time, pickup_location, dropoff_location, seats_available, tags, category, preferences, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Available', NOW())
         `;
-        const result = await db.query(sql, [driverId, departureDatetime, pickupLocation, dropoffLocation, seatsAvailable, tags]);
+        const result = await db.query(sql, [driverId, departureDatetime, pickupLocation, dropoffLocation, seatsAvailable, tags, category, preferences]);
         return result.insertId;
+    }
+
+    static async getCategories() {
+        const sql = `
+            SELECT DISTINCT category, COUNT(*) AS ride_count
+            FROM Rides
+            GROUP BY category
+            ORDER BY category;
+        `;
+        return await db.query(sql);
+    }
+    
+    static async getRidesByCategory(category) {
+        const sql = `
+            SELECT r.*, u.name AS driver_name, u.profile_photo
+            FROM Rides r
+            JOIN Users u ON r.driver_id = u.id
+            WHERE r.category = ?
+            ORDER BY r.departure_time;
+        `;
+        return await db.query(sql, [category]);
+    }
+    
+    static async getPreferences() {
+        const sql = `
+            SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(preferences, ',', n.n), ',', -1)) AS preference,
+                   COUNT(*) AS ride_count
+            FROM Rides
+            JOIN (
+                SELECT 1 AS n UNION ALL
+                SELECT 2 UNION ALL
+                SELECT 3 UNION ALL
+                SELECT 4 UNION ALL
+                SELECT 5
+            ) n ON CHAR_LENGTH(preferences) - CHAR_LENGTH(REPLACE(preferences, ',', '')) >= n.n - 1
+            WHERE preferences IS NOT NULL AND preferences != ''
+            GROUP BY preference
+            ORDER BY preference;
+        `;
+        return await db.query(sql);
+    }
+    
+    static async getRidesByPreference(preference) {
+        const sql = `
+            SELECT r.*, u.name AS driver_name, u.profile_photo
+            FROM Rides r
+            JOIN Users u ON r.driver_id = u.id
+            WHERE 
+                r.preferences = ? OR 
+                r.preferences LIKE ? OR 
+                r.preferences LIKE ? OR 
+                r.preferences LIKE ?
+            ORDER BY r.departure_time;
+        `;
+        return await db.query(sql, [preference, `${preference},%`, `%,${preference},%`, `%,${preference}`]);
+    }
+
+    static async updateRideStatus(rideId, status) {
+        const sql = 'UPDATE Rides SET status = ? WHERE id = ?';
+        return await db.query(sql, [status, rideId]);
     }
 }
 

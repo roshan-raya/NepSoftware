@@ -22,7 +22,16 @@ router.post("/:rideId/requests/:requestId/reject", RideController.rejectRideRequ
 // Route to delete a ride
 router.post("/:id/delete", RideController.deleteRide);
 
+// Route to update ride status
+router.post("/:id/status", RideController.updateRideStatus);
+
 // Tags route
 router.get("/tags", RideController.getTagsList);
+
+// Categories route
+router.get("/categories", RideController.getCategoriesList);
+
+// Preferences route
+router.get("/preferences", RideController.getPreferencesList);
 
 module.exports = router; 

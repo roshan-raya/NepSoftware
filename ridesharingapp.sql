@@ -1,93 +1,227 @@
-CREATE DATABASE IF NOT EXISTS ridesharingapp;
+-- Comprehensive SQL file for RideSharingApp
+-- This file includes all database structures and sample data
+
+DROP DATABASE IF EXISTS ridesharingapp;
+CREATE DATABASE ridesharingapp;
 USE ridesharingapp;
 
--- Table for Users (students and staff of University of Roehampton)
-CREATE TABLE Users (
+-- Create Users table if it doesn't exist
+CREATE TABLE IF NOT EXISTS Users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL CHECK (email LIKE '%@roehampton.ac.uk'),
-    password VARCHAR(192) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(64) NOT NULL,
     profile_photo VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    preferred_pickup VARCHAR(255),
+    preferred_payment VARCHAR(50) DEFAULT "Cash",
+    is_verified BOOLEAN DEFAULT FALSE,
+    verification_date DATETIME,
+    driver_rating DECIMAL(3,2) DEFAULT 0,
+    passenger_rating DECIMAL(3,2) DEFAULT 0,
+    bio TEXT,
+    phone VARCHAR(20),
+    last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email)
 );
 
--- Table for Rides (ride listings posted by drivers )
-CREATE TABLE Rides (
+-- Create Rides table if it doesn't exist
+CREATE TABLE IF NOT EXISTS Rides (
     id INT AUTO_INCREMENT PRIMARY KEY,
     driver_id INT NOT NULL,
     departure_time DATETIME NOT NULL,
     pickup_location VARCHAR(255) NOT NULL,
-    seats_available INT NOT NULL CHECK (seats_available >= 0),
-    tags VARCHAR(100),
+    destination VARCHAR(255) NOT NULL,
+    available_seats INT NOT NULL,
+    price DECIMAL(10,2),
+    notes TEXT,
+    category VARCHAR(50) DEFAULT 'Campus Routes',
+    status ENUM('scheduled', 'in_progress', 'completed', 'cancelled', 'Available', 'Full', 'Completed_Legacy') DEFAULT 'scheduled',
+    preferences VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (driver_id) REFERENCES Users(id) ON DELETE CASCADE,
-    INDEX idx_driver_id (driver_id)
+    INDEX idx_departure (departure_time),
+    INDEX idx_driver (driver_id),
+    INDEX idx_category (category),
+    INDEX idx_status (status)
 );
 
--- Table for Ride Requests (passengers requesting to join rides)
-CREATE TABLE Ride_Requests (
+-- Create Ride_Requests table if it doesn't exist
+CREATE TABLE IF NOT EXISTS Ride_Requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ride_id INT NOT NULL,
     passenger_id INT NOT NULL,
-    status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+    status ENUM('pending', 'accepted', 'rejected', 'cancelled') DEFAULT 'pending',
     requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (ride_id) REFERENCES Rides(id) ON DELETE CASCADE,
     FOREIGN KEY (passenger_id) REFERENCES Users(id) ON DELETE CASCADE,
     UNIQUE KEY unique_request (ride_id, passenger_id),
-    INDEX idx_ride_id (ride_id)
+    INDEX idx_ride (ride_id),
+    INDEX idx_passenger (passenger_id)
 );
 
--- Insert 15 Users (Roehampton students and staff)
-INSERT INTO Users (name, email, password, profile_photo) VALUES
-('Sajan Tamang', 'tam22614816@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'sajan.jpg'),
-('Himanshu Rana', 'ran22610335@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'himanshu.jpg'),
-('Roshan Rayamajhi', 'ray22612573@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'roshan.jpg'),
-('Johnny Chettri', 'chet22610001@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'johnny.jpg'),
-('Dr. Hansraj Hatti', 'hatti001@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'hansraj.jpg'),
-('Priya Sharma', 'shar22610002@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'priya.jpg'),
-('Liam Brown', 'brow22610003@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'liam.jpg'),
-('Aisha Khan', 'khan22610004@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'aisha.jpg'),
-('Dr. Emily Watson', 'wats002@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'emily.jpg'),
-('Omar Hassan', 'hass22610005@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'omar.jpg'),
-('Sophie Green', 'gree22610006@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'sophie.jpg'),
-('Prof. James Carter', 'cart003@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'james.jpg'),
-('Mei Lin', 'lin22610007@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'mei.jpg'),
-('Lucas Patel', 'pate22610008@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'lucas.jpg'),
-('Zara Ali', 'ali22610009@roehampton.ac.uk', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'zara.jpg');
+-- Create Reviews table if it doesn't exist
+CREATE TABLE IF NOT EXISTS Reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    reviewer_id INT NOT NULL,
+    reviewee_id INT NOT NULL,
+    ride_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    review_text TEXT,
+    review_type ENUM('driver', 'passenger') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reviewer_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewee_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (ride_id) REFERENCES Rides(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_review (reviewer_id, reviewee_id, ride_id, review_type),
+    INDEX idx_reviewee (reviewee_id),
+    INDEX idx_ride (ride_id)
+);
 
--- Insert 15 Rides (various times and locations around Roehampton)
-INSERT INTO Rides (driver_id, departure_time, pickup_location, seats_available, tags) VALUES
-(1, '2025-03-19 08:00:00', 'Roehampton Lane, SW15 5PJ', 3, 'Early Morning'),
-(2, '2025-03-19 17:00:00', 'Barnes Station, SW13 0HT', 2, 'Evening'),
-(5, '2025-03-20 13:00:00', 'Kingston Station, KT1 1UJ', 4, 'Afternoon'),
-(3, '2025-03-19 09:30:00', 'Putney High Street, SW15 1TW', 2, 'Morning'),
-(7, '2025-03-19 18:30:00', 'Richmond Station, TW9 1EZ', 3, 'Evening'),
-(9, '2025-03-20 07:45:00', 'Wimbledon Station, SW19 7NL', 1, 'Early Morning'),
-(4, '2025-03-19 12:00:00', 'Roehampton University Main Gate', 4, 'Midday'),
-(6, '2025-03-20 16:00:00', 'Hammersmith Broadway, W6 9YE', 3, 'Afternoon'),
-(8, '2025-03-19 08:15:00', 'East Sheen, SW14 8LS', 2, 'Early Morning'),
-(10, '2025-03-20 19:00:00', 'Clapham Junction, SW11 2QP', 3, 'Evening'),
-(12, '2025-03-19 10:00:00', 'Fulham Broadway, SW6 1BY', 2, 'Morning'),
-(13, '2025-03-20 14:30:00', 'Tooting Broadway, SW17 0SU', 4, 'Afternoon'),
-(15, '2025-03-19 07:30:00', 'Southfields Station, SW18 5RL', 1, 'Early Morning'),
-(11, '2025-03-20 17:45:00', 'Earlsfield Station, SW18 4SL', 3, 'Evening'),
-(14, '2025-03-19 11:15:00', 'Wandsworth Town, SW18 1SU', 2, 'Midday');
+-- Create UserActivity table for tracking user actions
+CREATE TABLE IF NOT EXISTS UserActivity (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    activity_type ENUM('ride_offered', 'ride_joined', 'ride_completed', 'profile_updated', 'review_posted') NOT NULL,
+    activity_data JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_activity_type (activity_type)
+);
 
--- Insert 15 Ride Requests (various statuses)
-INSERT INTO Ride_Requests (ride_id, passenger_id, status) VALUES
-(1, 4, 'pending'),   -- Johnny requests Sajan's ride
-(2, 3, 'accepted'),  -- Roshan joins Himanshu's ride
-(3, 6, 'rejected'),  -- Priya rejected from Dr. Hatti's ride
-(4, 8, 'pending'),   -- Aisha requests Johnny's ride
-(5, 10, 'accepted'), -- Omar joins Liam's ride
-(6, 11, 'pending'),  -- Sophie requests Dr. Watson's ride
-(7, 13, 'accepted'), -- Mei joins Priya's ride
-(8, 15, 'rejected'), -- Zara rejected from Aisha's ride
-(9, 2, 'pending'),   -- Himanshu requests Omar's ride
-(10, 5, 'accepted'), -- Dr. Hatti joins Sophie's ride
-(11, 7, 'pending'),  -- Liam requests Prof. Carter's ride
-(12, 9, 'accepted'), -- Dr. Watson joins Mei's ride
-(13, 14, 'rejected'),-- Lucas rejected from Zara's ride
-(14, 1, 'pending'),  -- Sajan requests Lucas's ride
-(15, 12, 'accepted');-- Prof. Carter joins Roshan's ride
+-- Sample Users data (if needed for development purposes)
+INSERT IGNORE INTO Users (id, name, email, password, profile_photo, is_verified) VALUES
+(1, 'Admin User', 'admin@roehampton.ac.uk', SHA2('admin123', 256), 'default.jpg', TRUE),
+(2, 'Himanshu Kumar', 'himanshu.kumar@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', TRUE),
+(3, 'Roshan Bhatta', 'roshan.bhatta@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', TRUE),
+(4, 'James Smith', 'james.smith@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', TRUE),
+(5, 'Dr. Hatti', 'hatti@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', TRUE),
+(6, 'Emma Wilson', 'emma.wilson@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', TRUE),
+(7, 'Liam Johnson', 'liam.johnson@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', TRUE),
+(8, 'Aisha Khan', 'aisha.khan@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE),
+(9, 'Daniel Brown', 'daniel.brown@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE),
+(10, 'Omar Patel', 'omar.patel@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE),
+(11, 'Sophie Chen', 'sophie.chen@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE),
+(12, 'Alex Turner', 'alex.turner@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE),
+(13, 'Mei Wong', 'mei.wong@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE),
+(14, 'Raj Singh', 'raj.singh@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE),
+(15, 'Zara Ahmed', 'zara.ahmed@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE);
+
+-- Sample Rides data (if needed for development purposes)
+INSERT IGNORE INTO Rides (id, driver_id, departure_time, pickup_location, destination, available_seats, price, notes, status, category, preferences) VALUES
+(1, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Roehampton Gate', 'Putney Station', 3, 5.00, 'Regular commute', 'scheduled', 'Campus Routes', 'Quiet Ride'),
+(2, 2, DATE_ADD(NOW(), INTERVAL 2 DAY), 'University Main Entrance', 'Richmond', 4, 7.50, 'Going shopping', 'scheduled', 'Shopping Trips', 'Music Allowed'),
+(3, 5, DATE_ADD(NOW(), INTERVAL 3 DAY), 'Library Building', 'Kingston', 2, 10.00, 'Weekend trip', 'scheduled', 'Campus Routes', 'Pet Friendly'),
+(4, 3, DATE_ADD(NOW(), INTERVAL 4 DAY), 'Student Union', 'Central London', 3, 12.00, 'Museum visit', 'scheduled', 'Campus Routes', 'Quiet Ride,Music Allowed'),
+(5, 7, DATE_ADD(NOW(), INTERVAL 5 DAY), 'Digby Stuart College', 'Hammersmith', 1, 8.00, 'Concert night', 'scheduled', 'Shopping Trips', 'Music Allowed'),
+(6, 9, DATE_ADD(NOW(), INTERVAL 6 DAY), 'Froebel College', 'Wimbledon', 3, 6.50, 'Tennis match', 'scheduled', 'Campus Routes', 'Quiet Ride'),
+(7, 4, DATE_ADD(NOW(), INTERVAL 7 DAY), 'Southlands College', 'Hampton Court', 2, 15.00, 'Palace tour', 'scheduled', 'Campus Routes', 'Music Allowed,Pet Friendly'),
+(8, 6, DATE_ADD(NOW(), INTERVAL 8 DAY), 'Whitelands College', 'Kew Gardens', 4, 9.00, 'Botanical trip', 'scheduled', 'Shopping Trips', ''),
+(9, 8, DATE_ADD(NOW(), INTERVAL 9 DAY), 'Main Campus', 'Heathrow Airport', 3, 20.00, 'Airport drop-off', 'scheduled', 'Airport Transfers', 'Quiet Ride'),
+(10, 10, DATE_ADD(NOW(), INTERVAL 10 DAY), 'Sports Complex', 'Westfield Shopping Centre', 2, 11.00, 'Shopping day', 'scheduled', 'Shopping Trips', 'Music Allowed');
+
+-- Sample Ride_Requests data (if needed for development purposes)
+INSERT IGNORE INTO Ride_Requests (ride_id, passenger_id, status) VALUES
+(1, 4, 'accepted'),
+(1, 3, 'accepted'),
+(2, 3, 'accepted'),
+(2, 6, 'pending'),
+(3, 6, 'accepted'),
+(3, 8, 'rejected'),
+(4, 8, 'accepted'),
+(4, 10, 'pending'),
+(5, 10, 'accepted'),
+(5, 11, 'accepted'),
+(6, 11, 'accepted'),
+(6, 13, 'pending'),
+(7, 13, 'accepted'),
+(7, 15, 'rejected'),
+(8, 15, 'accepted'),
+(8, 2, 'pending'),
+(9, 2, 'accepted'),
+(9, 5, 'accepted'),
+(10, 5, 'accepted'),
+(10, 4, 'pending');
+
+-- Sample reviews for drivers
+INSERT IGNORE INTO Reviews (reviewer_id, reviewee_id, ride_id, rating, review_text, review_type)
+VALUES
+(4, 1, 1, 5, 'Great driver! Very punctual and friendly.', 'driver'),
+(3, 2, 2, 4, 'Good ride, comfortable car.', 'driver'),
+(6, 5, 3, 5, 'Dr. Hatti is an excellent driver, very professional.', 'driver'),
+(8, 3, 4, 4, 'On time and courteous.', 'driver'),
+(10, 7, 5, 5, 'Liam is a fantastic driver, would ride again!', 'driver'),
+(11, 9, 6, 3, 'Decent ride but was a bit late.', 'driver'),
+(13, 4, 7, 5, 'Very accommodating driver, helped with my luggage.', 'driver'),
+(15, 6, 8, 4, 'Good conversation, made the journey enjoyable.', 'driver'),
+(2, 8, 9, 5, 'Excellent ride, very safe driver.', 'driver'),
+(5, 10, 10, 4, 'Prompt and efficient.', 'driver');
+
+-- Sample reviews for passengers
+INSERT IGNORE INTO Reviews (reviewer_id, reviewee_id, ride_id, rating, review_text, review_type)
+VALUES
+(1, 4, 1, 5, 'Perfect passenger, right on time and very polite.', 'passenger'),
+(2, 3, 2, 5, 'Roshan is a great passenger, would ride with him again!', 'passenger'),
+(5, 6, 3, 3, 'Was a little late to the pickup point.', 'passenger'),
+(3, 8, 4, 4, 'Aisha was punctual and friendly.', 'passenger'),
+(7, 10, 5, 5, 'Omar is an ideal passenger.', 'passenger'),
+(9, 11, 6, 4, 'Sophie was ready on time, good conversation.', 'passenger'),
+(4, 13, 7, 5, 'Mei is a great passenger, very considerate.', 'passenger'),
+(6, 15, 8, 4, 'Good passenger but was a bit noisy.', 'passenger'),
+(8, 2, 9, 5, 'Himanshu is an excellent passenger.', 'passenger'),
+(10, 5, 10, 5, 'Dr. Hatti is very respectful and punctual.', 'passenger');
+
+-- Sample activity entries
+INSERT IGNORE INTO UserActivity (user_id, activity_type, activity_data)
+SELECT id, 'profile_updated', JSON_OBJECT('detail', 'Account created') FROM Users;
+
+-- Update existing rides if needed
+UPDATE Rides SET 
+category = CASE 
+    WHEN id % 3 = 0 THEN 'Campus Routes'
+    WHEN id % 3 = 1 THEN 'Shopping Trips'
+    ELSE 'Airport Transfers'
+END,
+status = 'Available',
+preferences = CASE 
+    WHEN id % 3 = 0 THEN 'Quiet Ride'
+    WHEN id % 3 = 1 THEN 'Music Allowed'
+    ELSE 'Pet Friendly'
+END
+WHERE category IS NULL OR status = 'scheduled' OR preferences IS NULL;
+
+-- Update user ratings based on reviews
+UPDATE Users u
+SET driver_rating = (
+    SELECT COALESCE(AVG(rating), 0)
+    FROM Reviews
+    WHERE reviewee_id = u.id AND review_type = 'driver'
+);
+
+UPDATE Users u
+SET passenger_rating = (
+    SELECT COALESCE(AVG(rating), 0)
+    FROM Reviews
+    WHERE reviewee_id = u.id AND review_type = 'passenger'
+);
+
+-- Update existing users with some sample preferences
+UPDATE Users SET 
+preferred_pickup = CASE 
+    WHEN id % 3 = 0 THEN 'Roehampton Gate'
+    WHEN id % 3 = 1 THEN 'University Main Entrance'
+    ELSE 'Library Building'
+END,
+preferred_payment = CASE 
+    WHEN id % 2 = 0 THEN 'Cash'
+    ELSE 'Bank Transfer'
+END,
+verification_date = CASE 
+    WHEN is_verified = TRUE THEN DATE_SUB(NOW(), INTERVAL id DAY)
+    ELSE NULL
+END,
+bio = CONCAT('Hi, I am ', name, '. I am a ', CASE WHEN email LIKE '%@roehampton.ac.uk' THEN 'student' ELSE 'staff member' END, ' at University of Roehampton.'),
+phone = CONCAT('0', FLOOR(RAND() * 1000000000))
+WHERE preferred_pickup IS NULL;
