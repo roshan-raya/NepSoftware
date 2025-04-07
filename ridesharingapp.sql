@@ -32,9 +32,11 @@ CREATE TABLE IF NOT EXISTS Rides (
     departure_time DATETIME NOT NULL,
     pickup_location VARCHAR(255) NOT NULL,
     destination VARCHAR(255) NOT NULL,
+    seats_available INT NOT NULL,
     available_seats INT NOT NULL,
     price DECIMAL(10,2),
     notes TEXT,
+    tags VARCHAR(255),
     category VARCHAR(50) DEFAULT 'Campus Routes',
     status ENUM('scheduled', 'in_progress', 'completed', 'cancelled', 'Available', 'Full', 'Completed_Legacy') DEFAULT 'scheduled',
     preferences VARCHAR(255),
@@ -52,6 +54,7 @@ CREATE TABLE IF NOT EXISTS Ride_Requests (
     ride_id INT NOT NULL,
     passenger_id INT NOT NULL,
     status ENUM('pending', 'accepted', 'rejected', 'cancelled') DEFAULT 'pending',
+    message TEXT,
     requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (ride_id) REFERENCES Rides(id) ON DELETE CASCADE,
@@ -110,17 +113,17 @@ INSERT IGNORE INTO Users (id, name, email, password, profile_photo, is_verified)
 (15, 'Zara Ahmed', 'zara.ahmed@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE);
 
 -- Sample Rides data (if needed for development purposes)
-INSERT IGNORE INTO Rides (id, driver_id, departure_time, pickup_location, destination, available_seats, price, notes, status, category, preferences) VALUES
-(1, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Roehampton Gate', 'Putney Station', 3, 5.00, 'Regular commute', 'scheduled', 'Campus Routes', 'Quiet Ride'),
-(2, 2, DATE_ADD(NOW(), INTERVAL 2 DAY), 'University Main Entrance', 'Richmond', 4, 7.50, 'Going shopping', 'scheduled', 'Shopping Trips', 'Music Allowed'),
-(3, 5, DATE_ADD(NOW(), INTERVAL 3 DAY), 'Library Building', 'Kingston', 2, 10.00, 'Weekend trip', 'scheduled', 'Campus Routes', 'Pet Friendly'),
-(4, 3, DATE_ADD(NOW(), INTERVAL 4 DAY), 'Student Union', 'Central London', 3, 12.00, 'Museum visit', 'scheduled', 'Campus Routes', 'Quiet Ride,Music Allowed'),
-(5, 7, DATE_ADD(NOW(), INTERVAL 5 DAY), 'Digby Stuart College', 'Hammersmith', 1, 8.00, 'Concert night', 'scheduled', 'Shopping Trips', 'Music Allowed'),
-(6, 9, DATE_ADD(NOW(), INTERVAL 6 DAY), 'Froebel College', 'Wimbledon', 3, 6.50, 'Tennis match', 'scheduled', 'Campus Routes', 'Quiet Ride'),
-(7, 4, DATE_ADD(NOW(), INTERVAL 7 DAY), 'Southlands College', 'Hampton Court', 2, 15.00, 'Palace tour', 'scheduled', 'Campus Routes', 'Music Allowed,Pet Friendly'),
-(8, 6, DATE_ADD(NOW(), INTERVAL 8 DAY), 'Whitelands College', 'Kew Gardens', 4, 9.00, 'Botanical trip', 'scheduled', 'Shopping Trips', ''),
-(9, 8, DATE_ADD(NOW(), INTERVAL 9 DAY), 'Main Campus', 'Heathrow Airport', 3, 20.00, 'Airport drop-off', 'scheduled', 'Airport Transfers', 'Quiet Ride'),
-(10, 10, DATE_ADD(NOW(), INTERVAL 10 DAY), 'Sports Complex', 'Westfield Shopping Centre', 2, 11.00, 'Shopping day', 'scheduled', 'Shopping Trips', 'Music Allowed');
+INSERT IGNORE INTO Rides (id, driver_id, departure_time, pickup_location, destination, seats_available, available_seats, price, notes, status, category, preferences) VALUES
+(1, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Roehampton Gate', 'Putney Station', 3, 3, 5.00, 'Regular commute', 'scheduled', 'Campus Routes', 'Quiet Ride'),
+(2, 2, DATE_ADD(NOW(), INTERVAL 2 DAY), 'University Main Entrance', 'Richmond', 4, 4, 7.50, 'Going shopping', 'scheduled', 'Shopping Trips', 'Music Allowed'),
+(3, 5, DATE_ADD(NOW(), INTERVAL 3 DAY), 'Library Building', 'Kingston', 2, 2, 10.00, 'Weekend trip', 'scheduled', 'Campus Routes', 'Pet Friendly'),
+(4, 3, DATE_ADD(NOW(), INTERVAL 4 DAY), 'Student Union', 'Central London', 3, 3, 12.00, 'Museum visit', 'scheduled', 'Campus Routes', 'Quiet Ride,Music Allowed'),
+(5, 7, DATE_ADD(NOW(), INTERVAL 5 DAY), 'Digby Stuart College', 'Hammersmith', 1, 1, 8.00, 'Concert night', 'scheduled', 'Shopping Trips', 'Music Allowed'),
+(6, 9, DATE_ADD(NOW(), INTERVAL 6 DAY), 'Froebel College', 'Wimbledon', 3, 3, 6.50, 'Tennis match', 'scheduled', 'Campus Routes', 'Quiet Ride'),
+(7, 4, DATE_ADD(NOW(), INTERVAL 7 DAY), 'Southlands College', 'Hampton Court', 2, 2, 15.00, 'Palace tour', 'scheduled', 'Campus Routes', 'Music Allowed,Pet Friendly'),
+(8, 6, DATE_ADD(NOW(), INTERVAL 8 DAY), 'Whitelands College', 'Kew Gardens', 4, 4, 9.00, 'Botanical trip', 'scheduled', 'Shopping Trips', ''),
+(9, 8, DATE_ADD(NOW(), INTERVAL 9 DAY), 'Main Campus', 'Heathrow Airport', 3, 3, 20.00, 'Airport drop-off', 'scheduled', 'Airport Transfers', 'Quiet Ride'),
+(10, 10, DATE_ADD(NOW(), INTERVAL 10 DAY), 'Sports Complex', 'Westfield Shopping Centre', 2, 2, 11.00, 'Shopping day', 'scheduled', 'Shopping Trips', 'Music Allowed');
 
 -- Sample Ride_Requests data (if needed for development purposes)
 INSERT IGNORE INTO Ride_Requests (ride_id, passenger_id, status) VALUES
