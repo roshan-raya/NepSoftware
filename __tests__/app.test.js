@@ -14,7 +14,7 @@ jest.mock('../app/services/db', () => {
 });
 
 // Mock the config
-jest.mock('../config/config', () => ({
+jest.mock('../config/test.config', () => ({
   db: {
     host: 'localhost',
     port: '3306',
