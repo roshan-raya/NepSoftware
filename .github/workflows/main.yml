@@ -6,9 +6,23 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  NODE_ENV: test
+  DOCKER_IMAGE: ridesharing-app
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ridesharingapp_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     
     steps:
     - uses: actions/checkout@v3
@@ -26,6 +40,11 @@ jobs:
       run: npm test
       env:
         NODE_ENV: test
+        DB_HOST: localhost
+        DB_PORT: 3306
+        DB_USER: root
+        DB_PASSWORD: root
+        DB_NAME: ridesharingapp_test
 
   build-and-push:
     needs: test
@@ -49,9 +68,9 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/ridesharing-app:latest
-        cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/ridesharing-app:buildcache
-        cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/ridesharing-app:buildcache,mode=max
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+        cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:buildcache
+        cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:buildcache,mode=max
 
   deploy:
     needs: build-and-push
@@ -70,9 +89,13 @@ jobs:
         echo "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         
+        # Add host to known hosts
+        ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+        
         # Deploy using SSH
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST '
           cd /opt/ridesharing-app
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ridesharing-app:latest
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+          docker-compose down
           docker-compose up -d
         ' 
