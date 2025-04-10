@@ -18,7 +18,7 @@ const config = {
     password: process.env.MYSQL_ROOT_PASSWORD || process.env.MYSQL_PASS || 'password',
     database: process.env.MYSQL_DATABASE || 'ridesharingapp',
     waitForConnections: true,
-    connectionLimit: 5,
+    connectionLimit: 10,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0
@@ -28,7 +28,7 @@ const config = {
 // Create connection pool with retry logic
 let pool;
 let retryCount = 0;
-const maxRetries = 5;
+const maxRetries = 10;
 const retryDelay = 5000; // 5 seconds
 
 async function createPool() {
@@ -52,30 +52,37 @@ async function createPool() {
       return createPool();
     } else {
       console.error('Max retries reached. Could not connect to database.');
-      throw error;
+      return false;
     }
   }
 }
 
 // Initialize the pool
-createPool();
+createPool().then(success => {
+  if (!success) {
+    console.error('Failed to initialize database connection pool');
+  }
+});
 
 // Utility function to query the database
 async function query(sql, params) {
+  if (!pool) {
+    console.error('Database pool not initialized');
+    throw new Error('Database connection not available');
+  }
+
   try {
     console.log('DB Query:', sql);
     
     // Skip parameter processing if no params provided
     if (!params || !Array.isArray(params) || params.length === 0) {
-      // Execute the query directly without parameters
       const [result] = await pool.query(sql);
       console.log(`DB Result: ${Array.isArray(result) ? result.length : (result ? 1 : 0)} rows returned`);
       return result;
     }
     
-    // For simple cases with 1 or 2 numeric parameters (like LIMIT/OFFSET), handle separately
+    // For simple cases with 1 or 2 numeric parameters
     if (params.length <= 2 && params.every(p => typeof p === 'number' || (typeof p === 'string' && !isNaN(p)))) {
-      // Replace ? with actual values for simple numeric cases
       let finalQuery = sql;
       params.forEach(param => {
         const numValue = Number(param);
@@ -99,7 +106,6 @@ async function query(sql, params) {
       }
       
       if (typeof param === 'string') {
-        // Only convert strings that are definitely numeric
         if (/^-?\d+(\.\d+)?$/.test(param.trim())) {
           return Number(param);
         }
@@ -113,8 +119,6 @@ async function query(sql, params) {
       return param;
     });
     
-    console.log('Clean parameters:', cleanParams);
-    
     try {
       const [result] = await pool.execute(sql, cleanParams);
       console.log(`DB Result: ${Array.isArray(result) ? result.length : (result ? 1 : 0)} rows returned`);
@@ -124,13 +128,12 @@ async function query(sql, params) {
       console.error('SQL that failed:', sql);
       console.error('Parameters that failed:', cleanParams);
       
-      // Fallback: try with direct query as last resort
+      // Fallback: try with direct query
       console.log('Trying fallback with direct query...');
       let fallbackQuery = sql;
       for (let i = 0; i < cleanParams.length; i++) {
         const param = cleanParams[i];
         if (typeof param === 'string') {
-          // Escape strings
           fallbackQuery = fallbackQuery.replace('?', `'${param.replace(/'/g, "''")}'`);
         } else if (param === null) {
           fallbackQuery = fallbackQuery.replace('?', 'NULL');
@@ -138,7 +141,6 @@ async function query(sql, params) {
           fallbackQuery = fallbackQuery.replace('?', param);
         }
       }
-      console.log('Fallback query:', fallbackQuery);
       const [fallbackResult] = await pool.query(fallbackQuery);
       return fallbackResult;
     }
@@ -165,7 +167,11 @@ async function testConnection() {
 }
 
 // Initialize connection test
-testConnection();
+testConnection().then(success => {
+  if (!success) {
+    console.error('Failed to test database connection');
+  }
+});
 
 module.exports = {
   query,
