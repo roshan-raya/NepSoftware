@@ -65,6 +65,8 @@ CREATE TABLE IF NOT EXISTS Ride_Requests (
     requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     reply_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    fare DECIMAL(10,2) DEFAULT NULL,
+    payment_status ENUM('pending', 'paid', 'refunded', 'cancelled') DEFAULT 'pending',
     FOREIGN KEY (ride_id) REFERENCES Rides(id) ON DELETE CASCADE,
     FOREIGN KEY (passenger_id) REFERENCES Users(id) ON DELETE CASCADE,
     UNIQUE KEY unique_request (ride_id, passenger_id),
@@ -101,10 +103,6 @@ CREATE TABLE IF NOT EXISTS UserActivity (
     INDEX idx_user_id (user_id),
     INDEX idx_activity_type (activity_type)
 );
--- Add columns to Ride_Requests table for payment tracking
-ALTER TABLE Ride_Requests 
-ADD COLUMN fare DECIMAL(10,2) DEFAULT NULL,
-ADD COLUMN payment_status ENUM('pending', 'paid', 'refunded', 'cancelled') DEFAULT NULL;
 
 -- Create Payments table
 CREATE TABLE IF NOT EXISTS Payments (
