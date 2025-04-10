@@ -1,14 +1,6 @@
-/* 
- * Global Styles for Ride Sharing Application
- * This file contains shared styles used across multiple components
- * Includes card layouts, profile images, status indicators, and responsive design
- */
+/* Custom styles for Ride Sharing App */
 
-/* Card Component Styles
- * Base card styling with hover effects
- * Uses transform and box-shadow for elevation effect
- * Smooth transitions for better user experience
- */
+/* Card hover effect */
 .card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -18,30 +10,18 @@
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Profile Image Styling
- * Ensures images maintain aspect ratio
- * Uses object-fit to prevent distortion
- */
+/* Profile image styling */
 .rounded-circle {
   object-fit: cover;
 }
 
-/* Badge Component
- * Custom styling for status and tag badges
- * Increased font weight for better visibility
- * Comfortable padding for text content
- */
+/* Badge styling */
 .badge {
   font-weight: 500;
   padding: 0.5em 0.8em;
 }
 
-/* Status Indicator Colors
- * Color-coded status indicators for different states
- * Pending: Warning yellow
- * Accepted: Success green
- * Rejected: Danger red
- */
+/* Status colors */
 .status-pending {
   color: #ffc107;
 }
@@ -54,31 +34,20 @@
   color: #dc3545;
 }
 
-/* Footer Layout
- * Consistent spacing and background
- * Light gray background for visual separation
- */
+/* Footer styling */
 .footer {
   margin-top: 3rem;
   padding: 2rem 0;
   background-color: #f8f9fa;
 }
 
-/* Typography
- * Consistent heading styles
- * Dark gray color for better readability
- * Adequate bottom margin for spacing
- */
+/* Page header styling */
 h1, h2, h3 {
   margin-bottom: 1.5rem;
   color: #343a40;
 }
 
-/* Primary Button Styles
- * Brand color for primary actions
- * Hover state with darker shade
- * Consistent border color
- */
+/* Button styling */
 .btn-primary {
   background-color: #4e73df;
   border-color: #4e73df;
@@ -89,19 +58,13 @@ h1, h2, h3 {
   border-color: #2653d4;
 }
 
-/* Form Input Styling
- * Focus state with brand color
- * Subtle box shadow for depth
- */
+/* Form styling */
 .form-control:focus {
   border-color: #4e73df;
   box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
 }
 
-/* Pagination Component
- * Brand color for pagination links
- * Active state styling
- */
+/* Pagination styling */
 .pagination .page-link {
   color: #4e73df;
 }
@@ -111,10 +74,7 @@ h1, h2, h3 {
   border-color: #4e73df;
 }
 
-/* Responsive Design
- * Mobile-first adjustments
- * Card and container spacing for smaller screens
- */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .card {
     margin-bottom: 1.5rem;
@@ -126,11 +86,7 @@ h1, h2, h3 {
   }
 }
 
-/* Profile Image Container
- * Fixed dimensions for consistent display
- * Circular shape with overflow handling
- * Centered alignment with bottom margin
- */
+/* Create directory for profile images */
 .profile-img-container {
   width: 100px;
   height: 100px;
@@ -145,11 +101,7 @@ h1, h2, h3 {
   object-fit: cover;
 }
 
-/* Ride Details Section
- * Light background for content separation
- * Rounded corners and consistent padding
- * Bottom margin for spacing
- */
+/* Ride details styling */
 .ride-details {
   background-color: #f8f9fa;
   border-radius: 0.5rem;
@@ -157,11 +109,7 @@ h1, h2, h3 {
   margin-bottom: 1.5rem;
 }
 
-/* Tag Cloud Component
- * Flexible layout for multiple tags
- * Consistent spacing between tags
- * Bottom margin for separation
- */
+/* Tag cloud */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
@@ -174,10 +122,7 @@ h1, h2, h3 {
   cursor: pointer;
 }
 
-/* Request List Component
- * Hover effect for list items
- * Smooth background color transition
- */
+/* Request list styling */
 .request-list .list-group-item {
   transition: background-color 0.2s ease;
 }
@@ -186,20 +131,12 @@ h1, h2, h3 {
   background-color: #f8f9fa;
 }
 
-/* View All Routes Section
- * Centered text alignment
- * Top margin for separation
- */
+/* View all routes section */
 .view-all-routes {
   text-align: center;
   margin-top: 2rem;
 }
 
-/* Large Button Variant
- * Increased padding for emphasis
- * Larger font size for visibility
- * Rounded corners for modern look
- */
 .btn-large {
   padding: 0.75rem 2rem;
   font-size: 1.1rem;

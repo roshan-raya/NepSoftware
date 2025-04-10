@@ -1,17 +1,6 @@
-/* 
- * Help Section Styles
- * This file contains styles for the help/FAQ section,
- * including accordion-style questions and answers,
- * search functionality, and responsive design.
- */
-
-/* Help Section Container
- * Main container for the help section
- * Adds padding and background color
- * Centers content with max-width
- */
+/* Help Section Styles */
 .help-section {
-  padding: 80px 5%;
+  padding: 4rem 2rem;
   background-color: #f8f9fa;
   scroll-margin-top: 80px; /* Add space for fixed header */
 }
@@ -43,186 +32,21 @@
   margin-bottom: 1rem;
 }
 
-/* Help Section Title
- * Styling for the main heading
- * Adds bottom margin for spacing
- * Uses brand color for emphasis
- */
 .help-title {
-  text-align: center;
-  margin-bottom: 40px;
-  color: #4361ee;
-}
-
-/* Search Container
- * Flex container for search input
- * Adds margin for spacing
- * Centers content horizontally
- */
-.search-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-}
-
-/* Search Input
- * Styled input field for search
- * Adds padding and border radius
- * Includes focus state styling
- */
-.search-input {
-  width: 100%;
-  max-width: 500px;
-  padding: 12px 20px;
-  border: 2px solid #ddd;
-  border-radius: 25px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-/* Search Input Focus State
- * Changes border color on focus
- * Adds subtle shadow effect
- */
-.search-input:focus {
-  border-color: #4361ee;
-  outline: none;
-  box-shadow: 0 0 5px rgba(67, 97, 238, 0.2);
-}
-
-/* FAQ Container
- * Grid layout for FAQ items
- * Adds gap between items
- * Responsive column count
- */
-.faq-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* FAQ Item
- * Individual question-answer container
- * Adds background and border radius
- * Includes hover effect
- */
-.faq-item {
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
-
-/* FAQ Item Hover Effect
- * Slight lift effect on hover
- * Smooth transition animation
- */
-.faq-item:hover {
-  transform: translateY(-5px);
-}
-
-/* FAQ Question
- * Styling for question text
- * Adds bottom margin
- * Uses bold weight for emphasis
- */
-.faq-question {
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
   color: #333;
 }
 
-/* FAQ Answer
- * Styling for answer text
- * Muted color for readability
- * Adds line height for spacing
- */
-.faq-answer {
+.help-description {
   color: #666;
-  line-height: 1.6;
+  margin-bottom: 1.5rem;
 }
 
-/* Contact Section
- * Container for contact information
- * Adds top margin for separation
- * Centers content
- */
-.contact-section {
-  margin-top: 60px;
-  text-align: center;
-}
-
-/* Contact Title
- * Styling for contact section heading
- * Adds bottom margin
- * Uses brand color
- */
-.contact-title {
-  color: #4361ee;
-  margin-bottom: 20px;
-}
-
-/* Contact Info
- * Container for contact details
- * Flex layout for alignment
- * Adds spacing between items
- */
-.contact-info {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-  margin-top: 20px;
-}
-
-/* Contact Item
- * Individual contact method container
- * Adds icon and text styling
- * Includes hover effect
- */
-.contact-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #666;
-  transition: color 0.3s ease;
-}
-
-/* Contact Item Hover Effect
- * Changes color on hover
- * Smooth transition animation
- */
-.contact-item:hover {
-  color: #4361ee;
-}
-
-/* Contact Icon
- * Styling for contact icons
- * Fixed size for consistency
- */
-.contact-icon {
-  font-size: 1.2rem;
-}
-
-/* Mobile Responsive Design
- * Adjusts layout for smaller screens
- * Modifies spacing and font sizes
- */
-@media (max-width: 768px) {
-  .help-section {
-    padding: 40px 5%;
-  }
-
-  .faq-container {
-    grid-template-columns: 1fr;
-  }
-
-  .contact-info {
-    flex-direction: column;
-    gap: 20px;
-  }
+.help-btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
 }
 
 /* Help Modal Styles */
@@ -327,6 +151,22 @@
 .guide-section p {
   margin-bottom: 0.5rem;
   color: #666;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .help-section {
+    padding: 2rem 1rem;
+  }
+
+  .help-container {
+    grid-template-columns: 1fr;
+  }
+
+  .help-modal-content {
+    width: 95%;
+    padding: 1.5rem;
+  }
 }
 
 /* Active help link in navigation */
