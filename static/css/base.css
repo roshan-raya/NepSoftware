@@ -1,27 +1,47 @@
-/* Base Styles */
+/* 
+ * Base Styles - Main Stylesheet
+ * This file contains the foundational styles for the entire application,
+ * including reset styles, typography, buttons, and responsive design.
+ */
+
+/* Reset Styles - Normalize all elements */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-  }
-  
-  body {
+}
+
+/* Body Typography and Colors
+ * Sets the main font stack, line height, and colors
+ * Uses system fonts for optimal performance
+ */
+body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f9f9f9;
-  }
-  
-  a {
+}
+
+/* Link Styles
+ * Removes default underline and inherits parent color
+ */
+a {
     text-decoration: none;
     color: inherit;
-  }
-  
-  ul {
+}
+
+/* List Styles
+ * Removes default bullet points
+ */
+ul {
     list-style: none;
-  }
-  
-  .btn {
+}
+
+/* Button Base Styles
+ * Common styles shared across all button variants
+ * Includes hover effects and transitions
+ */
+.btn {
     display: inline-block;
     padding: 12px 24px;
     border-radius: 30px;
@@ -29,49 +49,74 @@
     cursor: pointer;
     transition: all 0.3s ease;
     border: none;
-  }
-  
-  .btn-primary {
+}
+
+/* Primary Button Styles
+ * Main call-to-action button style
+ * Uses brand color with shadow effect
+ */
+.btn-primary {
     background-color: #4361ee;
     color: white;
     box-shadow: 0 4px 14px rgba(67, 97, 238, 0.4);
-  }
-  
-  .btn-primary:hover {
+}
+
+/* Primary Button Hover Effect
+ * Adds depth with shadow and slight lift
+ */
+.btn-primary:hover {
     background-color: #3a56d4;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6);
-  }
-  
-  .btn-secondary {
+}
+
+/* Secondary Button Styles
+ * Alternative button style
+ * Similar to primary but with margin
+ */
+.btn-secondary {
     background-color: #4361ee;
     color: white;
     box-shadow: 0 4px 14px rgba(67, 97, 238, 0.4);
     margin-left: 10px;
-  }
-  
-  .btn-secondary:hover {
+}
+
+/* Secondary Button Hover Effect
+ * Matches primary button hover style
+ */
+.btn-secondary:hover {
     background-color: #3a56d4;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6);
-  }
-  
-  .btn-small {
+}
+
+/* Small Button Variant
+ * Compact button style for tight spaces
+ */
+.btn-small {
     padding: 8px 16px;
     font-size: 0.9rem;
     background-color: #4361ee;
     color: white;
-  }
-  
-  .section-title {
+}
+
+/* Section Title Styles
+ * Used for main headings throughout the site
+ * Includes decorative underline effect
+ */
+.section-title {
     text-align: center;
     font-size: 2.5rem;
     margin-bottom: 40px;
     color: #333;
     position: relative;
-  }
-  
-  .section-title::after {
+}
+
+/* Section Title Decoration
+ * Adds an underline accent to section titles
+ * Uses pseudo-element for the line
+ */
+.section-title::after {
     content: '';
     position: absolute;
     bottom: -10px;
@@ -81,22 +126,28 @@
     height: 4px;
     background-color: #4361ee;
     border-radius: 2px;
-  }
-  
-  /* Media Queries */
-  @media screen and (max-width: 768px) {
+}
+
+/* Responsive Design
+ * Media queries for mobile devices
+ * Adjusts layout and spacing for smaller screens
+ */
+@media screen and (max-width: 768px) {
+    /* Footer Responsive Adjustments */
     .footer-section {
-      flex: 100%;
-      text-align: center;
+        flex: 100%;
+        text-align: center;
     }
     
+    /* Center footer title decoration on mobile */
     .footer-title::after {
-      left: 50%;
-      transform: translateX(-50%);
+        left: 50%;
+        transform: translateX(-50%);
     }
     
+    /* Adjust college image size for mobile */
     .college {
-      width: 100%;
-      max-width: 300px;
+        width: 100%;
+        max-width: 300px;
     }
-  }
+}
