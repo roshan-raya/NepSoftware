@@ -1,0 +1,193 @@
+extends layout
+
+block content
+  .container.py-4
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow-sm.mb-4
+          .card-header.bg-primary.text-white.py-3
+            h2.mb-0
+              i.fas.fa-credit-card.me-2
+              | Payment for Ride
+          
+          .card-body.p-4
+            if error
+              .alert.alert-danger.mb-4
+                i.fas.fa-exclamation-circle.me-2
+                | #{error}
+            
+            // Ride details section
+            .ride-details.mb-4
+              h4.mb-3 Ride Details
+              .row
+                .col-md-6
+                  .mb-3
+                    h5
+                      i.fas.fa-map-marker-alt.text-danger.me-2
+                      | Pickup
+                    p.fs-5 #{ride.pickup_location}
+                  
+                  .mb-3
+                    h5
+                      i.fas.fa-flag-checkered.text-success.me-2
+                      | Destination
+                    p.fs-5 #{ride.destination}
+                
+                .col-md-6
+                  .mb-3
+                    h5
+                      i.fas.fa-calendar-alt.text-primary.me-2
+                      | Departure
+                    p.fs-5 #{new Date(ride.departure_time).toLocaleString()}
+                  
+                  .mb-3
+                    h5
+                      i.fas.fa-folder.text-info.me-2
+                      | Category
+                    p.fs-5 #{ride.category}
+            
+            // Fare calculation section
+            .fare-details.mb-4
+              h4.mb-3 Fare Calculation
+              
+              if distance && distance > 0
+                .alert.alert-info.mb-3
+                  .row
+                    .col-md-6
+                      p.mb-2
+                        i.fas.fa-route.me-2
+                        strong Distance: 
+                        | #{distance} km
+                    .col-md-6
+                      p.mb-2
+                        i.fas.fa-tag.me-2
+                        strong Category: 
+                        | #{ride.category}
+                  hr
+                  .row.mt-2
+                    .col-md-12
+                      h5.mb-0.text-center
+                        | Total Fare: 
+                        span.fw-bold £#{estimatedFare.toFixed(2)}
+              else
+                .alert.alert-warning
+                  i.fas.fa-exclamation-triangle.me-2
+                  | Distance calculation is not available. Coordinates are missing.
+            
+            // Payment form
+            form(action=`/payment/rides/${ride.id}/requests/${requestId}/pay`, method='POST')
+              input(type='hidden', name='amount', value=estimatedFare)
+              
+              .mb-4
+                h4.mb-3 Select Payment Method
+                
+                .form-check.mb-2
+                  input.form-check-input#creditCard(type='radio', name='paymentMethod', value='credit_card', checked)
+                  label.form-check-label(for='creditCard')
+                    i.fas.fa-credit-card.me-2
+                    | Credit/Debit Card
+                
+                .form-check.mb-2
+                  input.form-check-input#paypal(type='radio', name='paymentMethod', value='paypal')
+                  label.form-check-label(for='paypal')
+                    i.fab.fa-paypal.me-2
+                    | PayPal
+                
+                .form-check.mb-2
+                  input.form-check-input#cash(type='radio', name='paymentMethod', value='cash')
+                  label.form-check-label(for='cash')
+                    i.fas.fa-money-bill-wave.me-2
+                    | Cash (Pay to driver)
+              
+              // Credit card details (shown only if credit card is selected)
+              #creditCardDetails.payment-details.mb-4
+                h5.mb-3 Card Details
+                
+                .mb-3
+                  label.form-label(for='cardNumber') Card Number
+                  input.form-control#cardNumber(type='text', placeholder='1234 5678 9012 3456')
+                
+                .row
+                  .col-md-6
+                    .mb-3
+                      label.form-label(for='expiryDate') Expiry Date
+                      input.form-control#expiryDate(type='text', placeholder='MM/YY')
+                  
+                  .col-md-6
+                    .mb-3
+                      label.form-label(for='cvv') CVV
+                      input.form-control#cvv(type='text', placeholder='123')
+                
+                .mb-3
+                  label.form-label(for='cardName') Name on Card
+                  input.form-control#cardName(type='text', placeholder='John Doe')
+              
+              // Submit button
+              .d-grid.gap-2
+                button.btn.btn-primary.btn-lg(type='submit')
+                  i.fas.fa-check-circle.me-2
+                  | Confirm Payment
+                
+                a.btn.btn-outline-secondary.mt-2(href='/rides')
+                  i.fas.fa-arrow-left.me-2
+                  | Back to Rides
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Show/hide payment details based on selected method
+      const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
+      const creditCardDetails = document.getElementById('creditCardDetails');
+      
+      paymentMethods.forEach(method => {
+        method.addEventListener('change', function() {
+          if (this.value === 'credit_card') {
+            creditCardDetails.style.display = 'block';
+          } else {
+            creditCardDetails.style.display = 'none';
+          }
+        });
+      });
+      
+      // Initialize card input formatting
+      const cardNumberInput = document.getElementById('cardNumber');
+      if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', function(e) {
+          // Remove non-digits
+          let value = this.value.replace(/\D/g, '');
+          
+          // Add space after every 4 digits
+          value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+          
+          // Maximum 19 characters (16 digits + 3 spaces)
+          this.value = value.substring(0, 19);
+        });
+      }
+      
+      const expiryDateInput = document.getElementById('expiryDate');
+      if (expiryDateInput) {
+        expiryDateInput.addEventListener('input', function(e) {
+          // Remove non-digits
+          let value = this.value.replace(/\D/g, '');
+          
+          // Format as MM/YY
+          if (value.length > 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+          }
+          
+          // Maximum 5 characters (MM/YY)
+          this.value = value.substring(0, 5);
+        });
+      }
+      
+      const cvvInput = document.getElementById('cvv');
+      if (cvvInput) {
+        cvvInput.addEventListener('input', function(e) {
+          // Remove non-digits
+          let value = this.value.replace(/\D/g, '');
+          
+          // Maximum 3 characters
+          this.value = value.substring(0, 3);
+        });
+      }
+    }); 
