@@ -1,5 +1,6 @@
 const RideModel = require('../models/rideModel');
 const UserModel = require('../models/userModel');
+const ReviewModel = require('../models/reviewModel');
 
 class RideController {
     static async getRidesList(req, res) {
@@ -9,41 +10,69 @@ class RideController {
             const category = req.query.category || '';
             const status = req.query.status || '';
             const preferences = req.query.preferences || '';
+            const searchLat = req.query.searchLat || '';
+            const searchLng = req.query.searchLng || '';
             const userId = req.session.userId;
             
-            // Get all available rides
-            const rides = await RideModel.getAllRides(search, tag, category, status, preferences);
-            
-            // Get user's offered and booked rides if user is logged in
-            let myOfferedRides = [];
-            let myBookedRides = [];
-            
-            if (userId) {
-                myOfferedRides = await RideModel.getRidesByDriver(userId);
-                myBookedRides = await RideModel.getRidesByPassenger(userId);
-            }
-            
-            // Get ride categories and preferences for filtering
-            const categories = await RideModel.getCategories();
-            const availablePreferences = await RideModel.getPreferences();
-            
-            res.render('rides_list', { 
-                title: 'Available Rides', 
-                rides,
-                search,
-                tag,
-                category,
-                status,
-                preferences,
-                categories,
-                availablePreferences,
-                myOfferedRides,
-                myBookedRides,
-                user: userId ? true : false
+            console.log("Search parameters:", { 
+                search, tag, category, status, preferences, 
+                searchLat, searchLng 
             });
+            
+            // Get all available rides
+            try {
+                const rides = await RideModel.getAllRides(search, tag, category, status, preferences, searchLat, searchLng);
+                
+                // Get user's offered and booked rides if user is logged in
+                let myOfferedRides = [];
+                let myBookedRides = [];
+                
+                if (userId) {
+                    myOfferedRides = await RideModel.getRidesByDriver(userId);
+                    myBookedRides = await RideModel.getRidesByPassenger(userId);
+                }
+                
+                // Get ride categories and preferences for filtering
+                const categories = await RideModel.getCategories();
+                const availablePreferences = await RideModel.getPreferences();
+                
+                res.render('rides_list', { 
+                    title: 'Available Rides', 
+                    rides,
+                    search,
+                    tag,
+                    category,
+                    status,
+                    preferences,
+                    searchLat,
+                    searchLng,
+                    categories,
+                    availablePreferences,
+                    myOfferedRides,
+                    myBookedRides,
+                    user: userId ? true : false
+                });
+            } catch (modelError) {
+                console.error("Error in RideModel.getAllRides:", modelError);
+                return res.status(500).render('error', { 
+                    title: 'Database Error',
+                    message: 'There was a problem fetching rides from the database.',
+                    error: {
+                        status: 500,
+                        stack: process.env.NODE_ENV === 'development' ? modelError.stack : ''
+                    }
+                });
+            }
         } catch (error) {
-            console.error(error);
-            res.status(500).send("Error fetching rides");
+            console.error("General error in getRidesList:", error);
+            res.status(500).render('error', { 
+                title: 'Error',
+                message: 'An unexpected error occurred while fetching rides.',
+                error: {
+                    status: 500,
+                    stack: process.env.NODE_ENV === 'development' ? error.stack : ''
+                }
+            });
         }
     }
 
@@ -61,10 +90,14 @@ class RideController {
             
             const requests = await RideModel.getRideRequests(rideId);
             
+            // Get driver reviews
+            const driverReviews = await ReviewModel.getReviewsForUser(ride.driver_id, 'driver');
+            
             res.render('rides_detail', { 
                 title: `Ride Details: ${ride.pickup_location} to ${ride.dropoff_location}`,
                 ride,
-                requests
+                requests,
+                driverReviews
             });
         } catch (error) {
             console.error(error);
@@ -74,66 +107,181 @@ class RideController {
 
     static async showOfferRideForm(req, res) {
         try {
+            console.log("showOfferRideForm - Starting to load the form");
+            console.log("Current user ID:", req.session.userId);
+            
             // Get any needed data for the form (like available tags)
             const tags = await RideModel.getTags();
-            const categories = await RideModel.getCategories();
-            const preferences = await RideModel.getPreferences();
+            console.log("Tags loaded successfully:", tags ? tags.length : 0);
             
+            const categories = await RideModel.getCategories();
+            console.log("Categories loaded successfully:", categories ? categories.length : 0);
+            
+            const preferences = await RideModel.getPreferences();
+            console.log("Preferences loaded successfully:", preferences ? preferences.length : 0);
+            
+            console.log("About to render the offer_ride template");
             res.render('offer_ride', { 
                 title: 'Offer a Ride',
                 tags,
                 categories,
                 preferences
             });
+            console.log("Render completed successfully");
         } catch (error) {
-            console.error(error);
-            res.status(500).send("Error loading offer ride form");
+            console.error("ERROR in showOfferRideForm:", error);
+            console.error("Error details:", error.stack);
+            res.status(500).render('error', { 
+                title: 'Error',
+                message: 'Error loading offer ride form',
+                error: {
+                    status: 500,
+                    stack: process.env.NODE_ENV === 'development' ? error.stack : ''
+                }
+            });
         }
     }
 
     static async createRide(req, res) {
         try {
+            console.log("createRide - Starting to create a new ride");
             const driverId = req.session.userId; // Get the authenticated user's ID
+            console.log("Current user ID:", driverId);
+            
             const { 
                 departureDatetime, 
                 pickupLocation, 
-                dropoffLocation, 
+                dropoffLocation,
+                pickupLat,
+                pickupLng,
+                dropoffLat,
+                dropoffLng, 
                 seatsAvailable, 
                 tags,
                 category = 'Campus Routes',
                 preferences = ''
             } = req.body;
             
+            console.log("Form data received:", req.body);
+            
             // Validate the input
-            if (!departureDatetime || !pickupLocation || !dropoffLocation || !seatsAvailable) {
+            if (!departureDatetime) {
+                console.log("Validation failed: Missing departure date/time");
                 return res.status(400).render('offer_ride', {
                     title: 'Offer a Ride',
-                    error: 'Please fill all required fields',
+                    error: 'Please select a departure date and time',
                     formData: req.body
                 });
             }
             
-            // Create the new ride
-            const rideId = await RideModel.createRide({
-                driverId,
-                departureDatetime,
-                pickupLocation,
-                dropoffLocation,
-                seatsAvailable: parseInt(seatsAvailable, 10),
-                tags,
-                category,
-                preferences
-            });
+            if (!pickupLocation || pickupLocation.trim() === '') {
+                console.log("Validation failed: Missing pickup location");
+                return res.status(400).render('offer_ride', {
+                    title: 'Offer a Ride',
+                    error: 'Please enter a valid pickup location',
+                    formData: req.body
+                });
+            }
             
-            // Redirect to the new ride's detail page
-            res.redirect(`/rides/${rideId}`);
+            if (!dropoffLocation || dropoffLocation.trim() === '') {
+                console.log("Validation failed: Missing destination");
+                return res.status(400).render('offer_ride', {
+                    title: 'Offer a Ride',
+                    error: 'Please enter a valid destination',
+                    formData: req.body
+                });
+            }
+            
+            if (!seatsAvailable || isNaN(seatsAvailable) || parseInt(seatsAvailable) < 1 || parseInt(seatsAvailable) > 8) {
+                console.log("Validation failed: Invalid seats");
+                return res.status(400).render('offer_ride', {
+                    title: 'Offer a Ride',
+                    error: 'Please enter a valid number of seats (1-8)',
+                    formData: req.body
+                });
+            }
+            
+            console.log("Validation passed, attempting to create ride");
+            
+            // Create the new ride
+            try {
+                const rideId = await RideModel.createRide({
+                    driverId,
+                    departureDatetime,
+                    pickupLocation: pickupLocation.trim(),
+                    dropoffLocation: dropoffLocation.trim(),
+                    pickupLat: pickupLat ? parseFloat(pickupLat) : null,
+                    pickupLng: pickupLng ? parseFloat(pickupLng) : null,
+                    dropoffLat: dropoffLat ? parseFloat(dropoffLat) : null,
+                    dropoffLng: dropoffLng ? parseFloat(dropoffLng) : null,
+                    seatsAvailable: parseInt(seatsAvailable, 10),
+                    tags,
+                    category,
+                    preferences
+                });
+                
+                console.log("Ride created successfully with ID:", rideId);
+                
+                // Redirect to the new ride's detail page
+                res.redirect(`/rides/${rideId}`);
+            } catch (dbError) {
+                console.error('Database error while creating ride:', dbError);
+                
+                let errorMessage = 'An error occurred while creating the ride. Please try again.';
+                
+                // Check for specific error types to provide more helpful messages
+                if (dbError.code === 'ER_BAD_FIELD_ERROR') {
+                    errorMessage = 'There was a problem with the database schema. Please contact support.';
+                } else if (dbError.code === 'ER_NO_REFERENCED_ROW') {
+                    errorMessage = 'Invalid user account. Please try logging out and back in.';
+                } else if (dbError.code === 'ER_DATA_TOO_LONG') {
+                    errorMessage = 'One of the text fields is too long. Please shorten your input.';
+                }
+                
+                // Get required data for the form
+                const tags = await RideModel.getTags();
+                const categories = await RideModel.getCategories();
+                const preferences = await RideModel.getPreferences();
+                
+                res.status(500).render('offer_ride', {
+                    title: 'Offer a Ride',
+                    error: errorMessage,
+                    formData: req.body,
+                    tags,
+                    categories,
+                    preferences
+                });
+            }
         } catch (error) {
-            console.error(error);
-            res.status(500).render('offer_ride', {
-                title: 'Offer a Ride',
-                error: 'Error creating ride',
-                formData: req.body
-            });
+            console.error('Unexpected error in createRide controller:', error);
+            console.error('Error stack:', error.stack);
+            
+            // Get required data for the form
+            try {
+                const tags = await RideModel.getTags();
+                const categories = await RideModel.getCategories();
+                const preferences = await RideModel.getPreferences();
+                
+                res.status(500).render('offer_ride', {
+                    title: 'Offer a Ride',
+                    error: 'An unexpected error occurred. Please try again later.',
+                    formData: req.body,
+                    tags,
+                    categories,
+                    preferences
+                });
+            } catch (secondaryError) {
+                // If even loading the form data fails, fall back to a simple error
+                console.error('Secondary error while handling original error:', secondaryError);
+                res.status(500).render('error', {
+                    title: 'Error',
+                    message: 'A critical error occurred while processing your request.',
+                    error: {
+                        status: 500,
+                        stack: process.env.NODE_ENV === 'development' ? error.stack : ''
+                    }
+                });
+            }
         }
     }
 
@@ -168,7 +316,7 @@ class RideController {
             }
             
             // Check if the ride has available seats
-            if (ride.seats_available <= 0) {
+            if (ride.seats_available <= 0 || ride.available_seats <= 0) {
                 return res.status(400).send("No seats available for this ride");
             }
             
@@ -415,6 +563,150 @@ class RideController {
         } catch (error) {
             console.error(error);
             res.status(500).send("Error deleting ride");
+        }
+    }
+
+    static async showEditRideForm(req, res) {
+        try {
+            const rideId = parseInt(req.params.id, 10);
+            const userId = req.session.userId;
+            
+            // Check if user is authenticated
+            if (!userId) {
+                return res.redirect('/rides');
+            }
+            
+            // Get ride details
+            const ride = await RideModel.getRideById(rideId);
+            
+            // Check if the ride exists
+            if (!ride) {
+                return res.status(404).render('error', {
+                    title: 'Ride Not Found',
+                    message: 'The ride you\'re trying to edit does not exist.'
+                });
+            }
+            
+            // Verify current user is the driver
+            if (ride.driver_id !== userId) {
+                return res.status(403).render('error', {
+                    title: 'Access Denied',
+                    message: 'Only the driver can edit this ride.'
+                });
+            }
+            
+            // Get data for the form
+            const tags = await RideModel.getTags();
+            const categories = await RideModel.getCategories();
+            const preferences = await RideModel.getPreferences();
+            
+            res.render('edit_ride', {
+                title: 'Edit Ride',
+                ride,
+                tags,
+                categories,
+                preferences
+            });
+        } catch (error) {
+            console.error('Error in showEditRideForm:', error);
+            res.status(500).render('error', {
+                title: 'Error',
+                message: 'An error occurred while loading the edit form.',
+                error: {
+                    status: 500,
+                    stack: process.env.NODE_ENV === 'development' ? error.stack : ''
+                }
+            });
+        }
+    }
+    
+    static async updateRide(req, res) {
+        try {
+            const rideId = parseInt(req.params.id, 10);
+            const userId = req.session.userId;
+            
+            // Check if user is authenticated
+            if (!userId) {
+                return res.redirect('/rides');
+            }
+            
+            // Get ride details
+            const ride = await RideModel.getRideById(rideId);
+            
+            // Check if the ride exists
+            if (!ride) {
+                return res.status(404).render('error', {
+                    title: 'Ride Not Found',
+                    message: 'The ride you\'re trying to edit does not exist.'
+                });
+            }
+            
+            // Verify current user is the driver
+            if (ride.driver_id !== userId) {
+                return res.status(403).render('error', {
+                    title: 'Access Denied',
+                    message: 'Only the driver can edit this ride.'
+                });
+            }
+            
+            const {
+                departureDatetime,
+                pickupLocation,
+                dropoffLocation,
+                pickupLat,
+                pickupLng,
+                dropoffLat,
+                dropoffLng,
+                seatsAvailable,
+                tags,
+                category,
+                preferences
+            } = req.body;
+            
+            // Validate inputs
+            if (!departureDatetime || !pickupLocation || !dropoffLocation || !seatsAvailable) {
+                // Get needed data for re-rendering the form
+                const tagsData = await RideModel.getTags();
+                const categoriesData = await RideModel.getCategories();
+                const preferencesData = await RideModel.getPreferences();
+                
+                return res.status(400).render('edit_ride', {
+                    title: 'Edit Ride',
+                    ride,
+                    error: 'Please fill in all required fields.',
+                    tags: tagsData,
+                    categories: categoriesData,
+                    preferences: preferencesData
+                });
+            }
+            
+            // Update the ride
+            await RideModel.updateRide(rideId, {
+                departureDatetime,
+                pickupLocation: pickupLocation.trim(),
+                dropoffLocation: dropoffLocation.trim(),
+                pickupLat: pickupLat ? parseFloat(pickupLat) : null,
+                pickupLng: pickupLng ? parseFloat(pickupLng) : null,
+                dropoffLat: dropoffLat ? parseFloat(dropoffLat) : null,
+                dropoffLng: dropoffLng ? parseFloat(dropoffLng) : null,
+                seatsAvailable: parseInt(seatsAvailable),
+                tags,
+                category,
+                preferences
+            });
+            
+            // Redirect to the ride details page
+            res.redirect(`/rides/${rideId}`);
+        } catch (error) {
+            console.error('Error in updateRide:', error);
+            res.status(500).render('error', {
+                title: 'Error',
+                message: 'An error occurred while updating the ride.',
+                error: {
+                    status: 500,
+                    stack: process.env.NODE_ENV === 'development' ? error.stack : ''
+                }
+            });
         }
     }
 }

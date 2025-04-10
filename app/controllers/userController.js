@@ -438,7 +438,7 @@ class UserController {
                 reviews = await ReviewModel.getReviewsForUser(userId, reviewType);
             }
             
-            res.render('user_reviews', {
+            res.render('user_reviews_page', {
                 title: `${user.name}'s Reviews`,
                 user,
                 reviews,

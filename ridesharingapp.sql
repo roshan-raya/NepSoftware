@@ -31,7 +31,11 @@ CREATE TABLE IF NOT EXISTS Rides (
     driver_id INT NOT NULL,
     departure_time DATETIME NOT NULL,
     pickup_location VARCHAR(255) NOT NULL,
+    pickup_lat DECIMAL(10, 8),
+    pickup_lng DECIMAL(11, 8),
     destination VARCHAR(255) NOT NULL,
+    destination_lat DECIMAL(10, 8),
+    destination_lng DECIMAL(11, 8),
     seats_available INT NOT NULL,
     available_seats INT NOT NULL,
     price DECIMAL(10,2),
@@ -45,7 +49,9 @@ CREATE TABLE IF NOT EXISTS Rides (
     INDEX idx_departure (departure_time),
     INDEX idx_driver (driver_id),
     INDEX idx_category (category),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_pickup_coords (pickup_lat, pickup_lng),
+    INDEX idx_dest_coords (destination_lat, destination_lng)
 );
 
 -- Create Ride_Requests table if it doesn't exist
@@ -114,18 +120,18 @@ INSERT IGNORE INTO Users (id, name, email, password, profile_photo, is_verified)
 (14, 'Raj Singh', 'raj.singh@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE),
 (15, 'Zara Ahmed', 'zara.ahmed@roehampton.ac.uk', SHA2('test123', 256), 'default.jpg', FALSE);
 
--- Sample Rides data (if needed for development purposes)
-INSERT IGNORE INTO Rides (id, driver_id, departure_time, pickup_location, destination, seats_available, available_seats, price, notes, tags, status, category, preferences) VALUES
-(1, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Roehampton Gate', 'Putney Station', 3, 3, 5.00, 'Regular commute', 'Early Morning', 'scheduled', 'Campus Routes', 'Quiet Ride'),
-(2, 2, DATE_ADD(NOW(), INTERVAL 2 DAY), 'University Main Entrance', 'Richmond', 4, 4, 7.50, 'Going shopping', 'Evening', 'scheduled', 'Shopping Trips', 'Music Allowed'),
-(3, 5, DATE_ADD(NOW(), INTERVAL 3 DAY), 'Library Building', 'Kingston', 2, 2, 10.00, 'Weekend trip', 'Afternoon', 'scheduled', 'Campus Routes', 'Pet Friendly'),
-(4, 3, DATE_ADD(NOW(), INTERVAL 4 DAY), 'Student Union', 'Central London', 3, 3, 12.00, 'Museum visit', 'Morning', 'scheduled', 'Campus Routes', 'Quiet Ride,Music Allowed'),
-(5, 7, DATE_ADD(NOW(), INTERVAL 5 DAY), 'Digby Stuart College', 'Hammersmith', 1, 1, 8.00, 'Concert night', 'Evening', 'scheduled', 'Shopping Trips', 'Music Allowed'),
-(6, 9, DATE_ADD(NOW(), INTERVAL 6 DAY), 'Froebel College', 'Wimbledon', 3, 3, 6.50, 'Tennis match', 'Early Morning', 'scheduled', 'Campus Routes', 'Quiet Ride'),
-(7, 4, DATE_ADD(NOW(), INTERVAL 7 DAY), 'Southlands College', 'Hampton Court', 2, 2, 15.00, 'Palace tour', 'Afternoon', 'scheduled', 'Campus Routes', 'Music Allowed,Pet Friendly'),
-(8, 6, DATE_ADD(NOW(), INTERVAL 8 DAY), 'Whitelands College', 'Kew Gardens', 4, 4, 9.00, 'Botanical trip', 'Midday', 'scheduled', 'Shopping Trips', ''),
-(9, 8, DATE_ADD(NOW(), INTERVAL 9 DAY), 'Main Campus', 'Heathrow Airport', 3, 3, 20.00, 'Airport drop-off', 'Early Morning', 'scheduled', 'Airport Transfers', 'Quiet Ride'),
-(10, 10, DATE_ADD(NOW(), INTERVAL 10 DAY), 'Sports Complex', 'Westfield Shopping Centre', 2, 2, 11.00, 'Shopping day', 'Evening', 'scheduled', 'Shopping Trips', 'Music Allowed');
+-- Sample Rides data with location coordinates 
+INSERT IGNORE INTO Rides (id, driver_id, departure_time, pickup_location, pickup_lat, pickup_lng, destination, destination_lat, destination_lng, seats_available, available_seats, price, notes, tags, status, category, preferences) VALUES
+(1, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Roehampton Gate', 51.4554, -0.2642, 'Putney Station', 51.4613, -0.2159, 3, 3, 5.00, 'Regular commute', 'Early Morning', 'Available', 'Campus Routes', 'Quiet Ride'),
+(2, 2, DATE_ADD(NOW(), INTERVAL 2 DAY), 'University Main Entrance', 51.4582, -0.2412, 'Richmond', 51.4613, -0.3042, 4, 4, 7.50, 'Going shopping', 'Evening', 'Available', 'Shopping Trips', 'Music Allowed'),
+(3, 5, DATE_ADD(NOW(), INTERVAL 3 DAY), 'Library Building', 51.4576, -0.2425, 'Kingston', 51.4096, -0.3060, 2, 2, 10.00, 'Weekend trip', 'Afternoon', 'Available', 'Campus Routes', 'Pet Friendly'),
+(4, 3, DATE_ADD(NOW(), INTERVAL 4 DAY), 'Student Union', 51.4573, -0.2428, 'Central London', 51.5074, -0.1278, 3, 3, 12.00, 'Museum visit', 'Morning', 'Available', 'Campus Routes', 'Quiet Ride,Music Allowed'),
+(5, 7, DATE_ADD(NOW(), INTERVAL 5 DAY), 'Digby Stuart College', 51.4579, -0.2423, 'Hammersmith', 51.4927, -0.2224, 1, 1, 8.00, 'Concert night', 'Evening', 'Available', 'Shopping Trips', 'Music Allowed'),
+(6, 9, DATE_ADD(NOW(), INTERVAL 6 DAY), 'Froebel College', 51.4584, -0.2428, 'Wimbledon', 51.4214, -0.2068, 3, 3, 6.50, 'Tennis match', 'Early Morning', 'Available', 'Campus Routes', 'Quiet Ride'),
+(7, 4, DATE_ADD(NOW(), INTERVAL 7 DAY), 'Southlands College', 51.4575, -0.2435, 'Hampton Court', 51.4038, -0.3387, 2, 2, 15.00, 'Palace tour', 'Afternoon', 'Available', 'Campus Routes', 'Music Allowed,Pet Friendly'),
+(8, 6, DATE_ADD(NOW(), INTERVAL 8 DAY), 'Whitelands College', 51.4591, -0.2421, 'Kew Gardens', 51.4787, -0.2956, 4, 4, 9.00, 'Botanical trip', 'Midday', 'Available', 'Shopping Trips', ''),
+(9, 8, DATE_ADD(NOW(), INTERVAL 9 DAY), 'Main Campus', 51.4582, -0.2412, 'Heathrow Airport', 51.4700, -0.4543, 3, 3, 20.00, 'Airport drop-off', 'Early Morning', 'Available', 'Airport Transfers', 'Quiet Ride'),
+(10, 10, DATE_ADD(NOW(), INTERVAL 10 DAY), 'Sports Complex', 51.4594, -0.2406, 'Westfield Shopping Centre', 51.5074, -0.2225, 2, 2, 11.00, 'Shopping day', 'Evening', 'Available', 'Shopping Trips', 'Music Allowed');
 
 -- Sample Ride_Requests data (if needed for development purposes)
 INSERT IGNORE INTO Ride_Requests (ride_id, passenger_id, status, message) VALUES
@@ -181,21 +187,6 @@ VALUES
 -- Sample activity entries
 INSERT IGNORE INTO UserActivity (user_id, activity_type, activity_data)
 SELECT id, 'profile_updated', JSON_OBJECT('detail', 'Account created') FROM Users;
-
--- Update existing rides if needed
-UPDATE Rides SET 
-category = CASE 
-    WHEN id % 3 = 0 THEN 'Campus Routes'
-    WHEN id % 3 = 1 THEN 'Shopping Trips'
-    ELSE 'Airport Transfers'
-END,
-status = 'Available',
-preferences = CASE 
-    WHEN id % 3 = 0 THEN 'Quiet Ride'
-    WHEN id % 3 = 1 THEN 'Music Allowed'
-    ELSE 'Pet Friendly'
-END
-WHERE category IS NULL OR status = 'scheduled' OR preferences IS NULL;
 
 -- Update user ratings based on reviews
 UPDATE Users u

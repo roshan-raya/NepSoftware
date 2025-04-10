@@ -1,6 +1,28 @@
 extends layout
 
 block content
+  style.
+    .badge {
+      transition: all 0.2s ease;
+    }
+    
+    a .badge:hover, 
+    a.badge:hover {
+      background-color: #6c757d !important;
+      color: white !important;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .list-group-item a {
+      display: inline-block;
+    }
+    
+    .list-group-item a .badge {
+      padding: 0.5rem 0.75rem;
+      border-radius: 20px;
+    }
+
   if ride
     .container.py-4
       .row
@@ -28,7 +50,7 @@ block content
                     h4.mb-3
                       i.fas.fa-flag-checkered.text-success.me-2
                       | Destination
-                    p.fs-5 #{ride.dropoff_location}
+                    p.fs-5 #{ride.destination}
                 
                 // Ride Information
                 .col-md-6
@@ -61,9 +83,10 @@ block content
                       ul.list-group.list-group-flush.mb-2
                         each pref in (ride.preferences || '').split(',')
                           if pref.trim()
-                            li.list-group-item.py-1.bg-transparent.border-0
+                            li.list-group-item.py-1.bg-transparent.border-0.d-flex.align-items-center
                               i.fas.fa-check-circle.text-success.me-2
-                              | #{pref.trim()}
+                              a.text-decoration-none(href=`/rides?preferences=${encodeURIComponent(pref.trim())}`)
+                                span.badge.bg-light.text-dark= pref.trim()
                     
                     if ride.tags
                       h5.mt-3.mb-2
@@ -72,7 +95,44 @@ block content
                       .d-flex.flex-wrap.gap-1
                         each tag in (ride.tags || '').split(',')
                           if tag.trim()
-                            a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
+                            a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)
+                              i.fas.fa-tag.me-1
+                              | #{tag.trim()}
+                
+                // Map view if coordinates are available
+                if ride.pickup_lat && ride.pickup_lng && ride.destination_lat && ride.destination_lng
+                  .col-12.mt-4
+                    .card.shadow-sm.mb-4
+                      .card-header.bg-white.py-3
+                        h4.mb-0.text-primary
+                          i.fas.fa-map-marked-alt.me-2
+                          | Route Map
+                      .card-body.p-0
+                        #map-container(style='height: 300px; width: 100%')
+                        input#pickup-lat(type='hidden', value=ride.pickup_lat)
+                        input#pickup-lng(type='hidden', value=ride.pickup_lng)
+                        input#dest-lat(type='hidden', value=ride.destination_lat)
+                        input#dest-lng(type='hidden', value=ride.destination_lng)
+                else 
+                  .col-12.mt-4
+                    .card.shadow-sm.mb-4
+                      .card-header.bg-white.py-3
+                        h4.mb-0.text-primary
+                          i.fas.fa-map-marked-alt.me-2
+                          | Route Map
+                      .card-body.text-center.py-4
+                        i.fas.fa-map.text-muted.fa-3x.mb-3
+                        h5.text-muted Route Information
+                        p.text-muted Map view is not available for this ride.
+                        if userId && ride.driver_id == userId
+                          p.text-info
+                            i.fas.fa-info-circle.me-1
+                            | As the driver, you can update this ride with location coordinates to enable the map display.
+                          a.btn.btn-outline-primary.mt-2(href=`/rides/edit/${ride.id}`)
+                            i.fas.fa-edit.me-1
+                            | Update Ride Details
+                        else
+                          p.text-muted.small The driver has not added location coordinates for this ride.
               
               hr.my-4
               
@@ -85,9 +145,25 @@ block content
                   img.rounded-circle.me-3(src=getProfilePhoto(ride.profile_photo) alt=`${ride.driver_name}'s profile photo` width='60' height='60')
                   .driver-details
                     h5.mb-1 #{ride.driver_name}
-                    a.btn.btn-outline-primary.btn-sm(href=`/users/${ride.driver_id}`)
-                      i.fas.fa-user-circle.me-1
-                      | View Profile
+                    .d-flex.mt-2
+                      a.btn.btn-outline-primary.btn-sm.me-2(href=`/users/${ride.driver_id}`)
+                        i.fas.fa-user-circle.me-1
+                        | View Profile
+                      
+                      //- Add review button for completed rides (for passengers only)
+                      if ride.status === 'Completed' && userId && userId !== ride.driver_id
+                        a.btn.btn-outline-success.btn-sm(href=`/reviews/create/${ride.id}/${ride.driver_id}/driver`)
+                          i.fas.fa-star.me-1
+                          | Review Driver
+                
+                // Driver Reviews Section
+                if driverReviews
+                  .driver-reviews.mt-4
+                    include user_reviews.pug
+                    .text-end.mt-2
+                      a.btn.btn-outline-primary.btn-sm(href=`/reviews/user/${ride.driver_id}?type=driver`)
+                        i.fas.fa-external-link-alt.me-1
+                        | See All Reviews
         
         // Request to Join Card
         .col-lg-4
@@ -288,3 +364,108 @@ block content
         i.fas.fa-exclamation-circle.me-2
         h4.mb-0 Ride Not Found
         p.mb-0.ms-2 The ride you're looking for doesn't exist or has been removed. 
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize map if coordinates are available
+      const pickupLat = document.getElementById('pickup-lat')?.value;
+      const pickupLng = document.getElementById('pickup-lng')?.value;
+      const destLat = document.getElementById('dest-lat')?.value;
+      const destLng = document.getElementById('dest-lng')?.value;
+      
+      if (pickupLat && pickupLng && destLat && destLng) {
+        // Convert coordinates to numbers
+        const pickupLatNum = parseFloat(pickupLat);
+        const pickupLngNum = parseFloat(pickupLng);
+        const destLatNum = parseFloat(destLat);
+        const destLngNum = parseFloat(destLng);
+        
+        // Initialize map
+        const mapContainer = document.getElementById('map-container');
+        if (mapContainer) {
+          // Create the map
+          const map = L.map('map-container').setView([pickupLatNum, pickupLngNum], 13);
+          
+          // Add the OpenStreetMap layer
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
+          
+          // Add markers for pickup and destination
+          const pickupMarker = L.marker([pickupLatNum, pickupLngNum], {
+            title: 'Pickup Location',
+            icon: L.icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              shadowSize: [41, 41]
+            })
+          }).addTo(map);
+          
+          const destMarker = L.marker([destLatNum, destLngNum], {
+            title: 'Destination',
+            icon: L.icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              shadowSize: [41, 41]
+            })
+          }).addTo(map);
+          
+          // Add a polyline between the points
+          const routeLine = L.polyline([
+            [pickupLatNum, pickupLngNum],
+            [destLatNum, destLngNum]
+          ], {
+            color: 'blue',
+            weight: 5,
+            opacity: 0.7,
+            dashArray: '10, 10',
+            lineJoin: 'round'
+          }).addTo(map);
+          
+          // Add popups with location info
+          pickupMarker.bindPopup(`<b>Pickup Location:</b><br>${ride.pickup_location}`);
+          destMarker.bindPopup(`<b>Destination:</b><br>${ride.destination}`);
+          
+          // Fit the map to show both points
+          const bounds = L.latLngBounds([
+            [pickupLatNum, pickupLngNum],
+            [destLatNum, destLngNum]
+          ]);
+          map.fitBounds(bounds, { padding: [50, 50] });
+          
+          // Try to get a route using OSRM public API
+          try {
+            fetch(`https://router.project-osrm.org/route/v1/driving/${pickupLngNum},${pickupLatNum};${destLngNum},${destLatNum}?overview=full&geometries=geojson`)
+              .then(response => response.json())
+              .then(data => {
+                if (data.routes && data.routes.length > 0) {
+                  // Remove the straight line
+                  map.removeLayer(routeLine);
+                  
+                  // Add the actual route
+                  const routeCoordinates = data.routes[0].geometry.coordinates;
+                  const latLngs = routeCoordinates.map(coord => [coord[1], coord[0]]);
+                  
+                  L.polyline(latLngs, {
+                    color: 'blue',
+                    weight: 5,
+                    opacity: 0.7,
+                    lineJoin: 'round'
+                  }).addTo(map);
+                }
+              })
+              .catch(error => {
+                console.error('Error fetching route:', error);
+                // The straight line will remain if there's an error
+              });
+          } catch (error) {
+            console.error('Error with route calculation:', error);
+          }
+        }
+      }
+    }); 

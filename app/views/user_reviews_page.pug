@@ -1,0 +1,57 @@
+extends layout
+
+block content
+  if user
+    .container.py-4
+      .row
+        .col-md-12
+          .user-header.d-flex.align-items-center.mb-4
+            img.rounded-circle.me-3(src=getProfilePhoto(user.profile_photo) alt=`${user.name}'s profile photo` width='80' height='80')
+            .user-info
+              h2.mb-1= user.name
+              p.mb-0.text-muted
+                i.fas.fa-user.me-2
+                | Reviews as 
+                if reviewType === 'driver'
+                  | Driver
+                else if reviewType === 'passenger'
+                  | Passenger
+                else
+                  | Driver & Passenger
+              
+              .user-links.mt-2
+                a.btn.btn-outline-primary.btn-sm.me-2(href=`/users/${user.id}`)
+                  i.fas.fa-user-circle.me-1
+                  | View Profile
+                  
+                if reviewType !== 'driver'
+                  a.btn.btn-outline-primary.btn-sm.me-2(href=`/reviews/user/${user.id}?type=driver`)
+                    i.fas.fa-car.me-1
+                    | View Driver Reviews
+                    
+                if reviewType !== 'passenger'
+                  a.btn.btn-outline-primary.btn-sm.me-2(href=`/reviews/user/${user.id}?type=passenger`)
+                    i.fas.fa-user.me-1
+                    | View Passenger Reviews
+                    
+                if reviewType !== 'all'
+                  a.btn.btn-outline-primary.btn-sm(href=`/reviews/user/${user.id}`)
+                    i.fas.fa-star.me-1
+                    | View All Reviews
+      
+      .row
+        .col-md-12
+          .card.shadow-sm
+            .card-header.bg-white.py-3
+              h3.mb-0
+                i.fas.fa-star.text-warning.me-2
+                | Reviews
+                if reviewType === 'driver'
+                  |  as Driver
+                else if reviewType === 'passenger'
+                  |  as Passenger
+            .card-body
+              - var reviews = reviews
+              include user_reviews.pug
+  else
+    .alert.alert-danger User not found. 

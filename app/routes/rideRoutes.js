@@ -47,4 +47,8 @@ router.get("/categories", RideController.getCategoriesList);
 // Preferences route
 router.get("/preferences", RideController.getPreferencesList);
 
+// Edit ride routes
+router.get("/edit/:id", RideController.showEditRideForm);
+router.post("/edit/:id", RideController.updateRide);
+
 module.exports = router; 

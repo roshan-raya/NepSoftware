@@ -1,0 +1,93 @@
+extends layout
+
+block content
+  .container.py-4
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow-sm
+          .card-header.bg-white.py-3
+            h2.mb-0
+              if reviewType === 'driver'
+                i.fas.fa-car.me-2.text-primary
+                | Review Driver
+              else
+                i.fas.fa-user.me-2.text-primary
+                | Review Passenger
+          
+          .card-body
+            .user-info.d-flex.align-items-center.mb-4
+              img.rounded-circle.me-3(src=getProfilePhoto(reviewee.profile_photo) alt=`${reviewee.name}'s profile photo` width='60' height='60')
+              .user-details
+                h4.mb-1= reviewee.name
+                p.text-muted.mb-0
+                  i.fas.fa-car.me-1
+                  | Ride from 
+                  strong #{ride.pickup_location} 
+                  | to 
+                  strong #{ride.destination}
+                p.text-muted
+                  i.far.fa-calendar-alt.me-1
+                  | #{new Date(ride.departure_time).toLocaleString()}
+            
+            if existingReview
+              .alert.alert-info
+                i.fas.fa-info-circle.me-2
+                | You have already reviewed this user for this ride. You can update your review below.
+              
+              .review-preview.bg-light.p-3.rounded.mb-4
+                .d-flex.justify-content-between.align-items-center.mb-2
+                  .rating-display
+                    - for(let i = 1; i <= 5; i++)
+                      if i <= existingReview.rating
+                        i.fas.fa-star.text-warning.me-1
+                      else
+                        i.far.fa-star.text-warning.me-1
+                  small.text-muted Submitted on #{new Date(existingReview.created_at).toLocaleDateString()}
+                
+                if existingReview.review_text
+                  p.mb-0= existingReview.review_text
+                else
+                  p.text-muted.mb-0 No review text provided.
+            
+            form(action=`/reviews/create/${ride.id}/${reviewee.id}/${reviewType}` method='POST')
+              .mb-4
+                label.form-label
+                  i.fas.fa-star.text-warning.me-2
+                  | Rating
+                .rating-input.d-flex.flex-wrap
+                  - for(let i = 1; i <= 5; i++)
+                    .form-check.form-check-inline
+                      input.form-check-input.rating-radio(
+                        type='radio'
+                        name='rating'
+                        id=`rating-${i}`
+                        value=i
+                        checked=(existingReview && existingReview.rating === i)
+                        required
+                      )
+                      label.form-check-label(for=`rating-${i}`)
+                        | #{i} 
+                        i.fas.fa-star.text-warning
+              
+              .mb-4
+                label.form-label(for='reviewText')
+                  i.fas.fa-comment.me-2
+                  | Your Review
+                textarea.form-control(
+                  id='reviewText'
+                  name='reviewText'
+                  rows='5'
+                  placeholder=`Write your review of ${reviewee.name} as a ${reviewType}...`
+                )= existingReview ? existingReview.review_text : ''
+              
+              .d-flex.justify-content-between
+                a.btn.btn-outline-secondary(href=`/rides/${ride.id}`)
+                  i.fas.fa-arrow-left.me-1
+                  | Back to Ride
+                
+                button.btn.btn-primary(type='submit')
+                  i.fas.fa-paper-plane.me-1
+                  if existingReview
+                    | Update Review
+                  else
+                    | Submit Review 

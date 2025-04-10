@@ -48,5 +48,28 @@ block content
                 p.mb-1 Requested at: #{new Date(request.requested_at).toLocaleString()}
         else
           .alert.alert-info No ride requests found for this user.
+          
+    // Review Sections
+    .row.mt-4
+      .col-md-6.mb-4
+        .card.shadow-sm
+          .card-header.bg-white.py-3
+            h3.mb-0
+              i.fas.fa-car.me-2.text-primary
+              | Driver Reviews
+          .card-body
+            - var reviews = driverReviews
+            include user_reviews.pug
+          
+      .col-md-6.mb-4
+        .card.shadow-sm
+          .card-header.bg-white.py-3
+            h3.mb-0
+              i.fas.fa-user.me-2.text-primary
+              | Passenger Reviews
+          .card-body
+            - var reviews = passengerReviews
+            include user_reviews.pug
+            
   else
     .alert.alert-danger User not found. 

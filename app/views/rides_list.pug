@@ -1,6 +1,40 @@
 extends layout
 
 block content
+  style.
+    .clickable-filter {
+      display: inline-block;
+      padding: 0.5rem 0.75rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 20px;
+    }
+    
+    .clickable-filter:hover {
+      background-color: #6c757d !important;
+      color: white !important;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .clickable-filter.active {
+      background-color: #007bff !important;
+      color: white !important;
+      font-weight: bold;
+    }
+    
+    .tag-cloud, .category-cloud, .status-cloud, .preference-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    
+    select.form-select {
+      margin-top: 0.5rem;
+    }
+
   .container.py-4
     if user
       // My Offered Rides Section
@@ -37,7 +71,9 @@ block content
                           .d-flex.flex-wrap.gap-1.mt-2
                             each tag in (ride.tags || '').split(',')
                               if tag.trim()
-                                a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
+                                a.badge.bg-light.text-dark.text-decoration-none.clickable-filter(href=`/rides?tag=${encodeURIComponent(tag.trim())}` class=tag === tag.trim() ? 'active bg-primary text-white' : '')
+                                  i.fas.fa-tag.me-1
+                                  | #{tag.trim()}
                       .col-md-4.text-end
                         .d-flex.flex-column.justify-content-between.h-100
                           .mb-3
@@ -89,7 +125,9 @@ block content
                           .d-flex.flex-wrap.gap-1.mt-2
                             each tag in (ride.tags || '').split(',')
                               if tag.trim()
-                                a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)= tag.trim()
+                                a.badge.bg-light.text-dark.text-decoration-none.clickable-filter(href=`/rides?tag=${encodeURIComponent(tag.trim())}` class=tag === tag.trim() ? 'active bg-primary text-white' : '')
+                                  i.fas.fa-tag.me-1
+                                  | #{tag.trim()}
                       .col-md-4.text-end
                         .d-flex.flex-column.justify-content-between.h-100
                           .mb-3
@@ -107,17 +145,26 @@ block content
     // Available Rides Section
     .d-flex.justify-content-between.align-items-center.mb-4
       h1.display-4 Available Rides
-      a.btn.btn-primary(href='/rides/new')
+      a.btn.btn-primary(href='/rides/offer')
         i.fas.fa-plus.me-2
         | Offer a Ride
     
     .row.mb-4
       .col-md-8
+        // Error messages for search errors
+        if searchLat && searchLng
+          #geo-search-error-container.alert.alert-warning.mb-2.d-none
+            i.fas.fa-exclamation-triangle.me-2
+            | Location-based search failed. Showing all available rides instead.
+            button.btn-close.float-end(type="button" data-bs-dismiss="alert" aria-label="Close")
+            
         form(action='/rides', method='GET').d-flex.gap-2
           .input-group
             span.input-group-text
               i.fas.fa-search
-            input.form-control(type='text', name='search', placeholder='Search by location or destination', value=search || '')
+            input.form-control#searchInput(type='text', name='search', placeholder='Search by location or destination', value=search || '')
+            button.btn.btn-outline-secondary#showSearchMapBtn(type='button')
+              i.fas.fa-map-marker-alt
             if tag
               input(type='hidden', name='tag', value=tag)
             if category
@@ -132,6 +179,11 @@ block content
             if search
               a.btn.btn-outline-secondary(href=`/rides${tag ? '?tag=' + tag : ''}${category ? '&category=' + category : ''}${status ? '&status=' + status : ''}${preferences ? '&preferences=' + preferences : ''}`)
                 i.fas.fa-times
+          
+          // Map container for visual destination search
+          #search-map-container(style='height: 300px; width: 100%; display: none; margin-top: 10px;')
+          input(type='hidden', name='searchLat', id='searchLat')
+          input(type='hidden', name='searchLng', id='searchLng')
       .col-md-4
         .d-flex.justify-content-end.gap-2
           if tag || category || status || preferences
@@ -143,6 +195,12 @@ block content
     .row.mb-4
       .col-md-3.mb-2
         label.form-label.fw-bold Tags
+        .tag-cloud.mb-2
+          if tags && tags.length > 0
+            each tagOption in tags
+              a.badge.bg-light.text-dark.text-decoration-none.me-1.mb-1.clickable-filter(href=`/rides?tag=${encodeURIComponent(tagOption)}` class=tag === tagOption ? 'active bg-primary text-white' : '')
+                i.fas.fa-tag.me-1
+                | #{tagOption}
         select.form-select(id='tagFilter')
           option(value='') All Tags
           each tagOption in tags || []
@@ -150,6 +208,12 @@ block content
       
       .col-md-3.mb-2
         label.form-label.fw-bold Category
+        .category-cloud.mb-2
+          if categories && categories.length > 0
+            each categoryOption in categories
+              a.badge.bg-light.text-dark.text-decoration-none.me-1.mb-1.clickable-filter(href=`/rides?category=${encodeURIComponent(categoryOption.category)}` class=category === categoryOption.category ? 'active bg-primary text-white' : '')
+                i.fas.fa-folder.me-1
+                | #{categoryOption.category}
         select.form-select(id='categoryFilter')
           option(value='') All Categories
           each categoryOption in categories || []
@@ -157,6 +221,11 @@ block content
       
       .col-md-3.mb-2
         label.form-label.fw-bold Status
+        .status-cloud.mb-2
+          each statusOption in ['Available', 'Full', 'Completed']
+            a.badge.bg-light.text-dark.text-decoration-none.me-1.mb-1.clickable-filter(href=`/rides?status=${encodeURIComponent(statusOption)}` class=status === statusOption ? 'active bg-primary text-white' : '')
+              i.fas.fa-info-circle.me-1
+              | #{statusOption}
         select.form-select(id='statusFilter')
           option(value='') All Statuses
           option(value='Available', selected=status === 'Available') Available
@@ -165,6 +234,12 @@ block content
       
       .col-md-3.mb-2
         label.form-label.fw-bold Preferences
+        .preference-cloud.mb-2
+          if availablePreferences && availablePreferences.length > 0
+            each prefOption in availablePreferences
+              a.badge.bg-light.text-dark.text-decoration-none.me-1.mb-1.clickable-filter(href=`/rides?preferences=${encodeURIComponent(prefOption.preference)}` class=preferences === prefOption.preference ? 'active bg-primary text-white' : '')
+                i.fas.fa-star.me-1
+                | #{prefOption.preference}
         select.form-select(id='preferencesFilter')
           option(value='') All Preferences
           each prefOption in availablePreferences || []
@@ -198,7 +273,7 @@ block content
                   // Category and Status badges
                   .d-flex.gap-2.mb-2
                     if ride.category
-                      a.badge.bg-info.text-decoration-none(href=`/rides?category=${encodeURIComponent(ride.category)}`)
+                      a.badge.bg-light.text-dark.text-decoration-none.clickable-filter(href=`/rides?category=${encodeURIComponent(ride.category)}` class=category === ride.category ? 'active bg-primary text-white' : '')
                         i.fas.fa-folder.me-1
                         | #{ride.category}
                     if ride.status
@@ -211,7 +286,7 @@ block content
                     .d-flex.flex-wrap.gap-1.mt-2
                       each tag in (ride.tags || '').split(',')
                         if tag.trim()
-                          a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?tag=${encodeURIComponent(tag.trim())}`)
+                          a.badge.bg-light.text-dark.text-decoration-none.clickable-filter(href=`/rides?tag=${encodeURIComponent(tag.trim())}` class=tag === tag.trim() ? 'active bg-primary text-white' : '')
                             i.fas.fa-tag.me-1
                             | #{tag.trim()}
                   
@@ -220,7 +295,7 @@ block content
                     .d-flex.flex-wrap.gap-1.mt-2
                       each pref in (ride.preferences || '').split(',')
                         if pref.trim()
-                          a.badge.bg-light.text-dark.text-decoration-none(href=`/rides?preferences=${encodeURIComponent(pref.trim())}`)
+                          a.badge.bg-light.text-dark.text-decoration-none.clickable-filter(href=`/rides?preferences=${encodeURIComponent(pref.trim())}` class=preferences === pref.trim() ? 'active bg-primary text-white' : '')
                             i.fas.fa-star.me-1
                             | #{pref.trim()}
                 
@@ -258,45 +333,321 @@ block content
 
 block scripts
   script.
-    // Filter handling
-    document.getElementById('tagFilter').addEventListener('change', function() {
-      updateFilters('tag', this.value);
-    });
-    
-    document.getElementById('categoryFilter').addEventListener('change', function() {
-      updateFilters('category', this.value);
-    });
-    
-    document.getElementById('statusFilter').addEventListener('change', function() {
-      updateFilters('status', this.value);
-    });
-    
-    document.getElementById('preferencesFilter').addEventListener('change', function() {
-      updateFilters('preferences', this.value);
-    });
-    
-    function updateFilters(param, value) {
-      const urlParams = new URLSearchParams(window.location.search);
-      
-      // If value is empty, remove the parameter
-      if (!value) {
-        urlParams.delete(param);
-      } else {
-        urlParams.set(param, value);
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        // Show geo search error message if present in URL and we have coordinates
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchLat = urlParams.get('searchLat');
+        const searchLng = urlParams.get('searchLng');
+        const errorContainer = document.getElementById('geo-search-error-container');
+        
+        // Check if we have geographic search parameters but no results
+        if (searchLat && searchLng && #{rides && rides.length || 0} === 0) {
+          if (errorContainer) {
+            errorContainer.classList.remove('d-none');
+          }
+        }
+        
+        // Leaflet Map Setup for search
+        let searchMap, searchMarker;
+        const defaultLocation = [51.4613, -0.2227]; // Roehampton University coordinates
+        
+        // Initialize the search map when the button is clicked - safely check if element exists
+        const showSearchMapBtn = document.getElementById('showSearchMapBtn');
+        if (showSearchMapBtn) {
+          showSearchMapBtn.addEventListener('click', function() {
+            const mapContainer = document.getElementById('search-map-container');
+            if (!mapContainer) return;
+            
+            if (mapContainer.style.display === 'none') {
+              mapContainer.style.display = 'block';
+              
+              if (!searchMap) {
+                try {
+                  searchMap = L.map('search-map-container').setView(defaultLocation, 13);
+                  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  }).addTo(searchMap);
+                  
+                  // Add a marker at the default location
+                  searchMarker = L.marker(defaultLocation, {draggable: true}).addTo(searchMap);
+                  
+                  // Update coordinates when marker is dragged
+                  searchMarker.on('dragend', function(e) {
+                    const position = searchMarker.getLatLng();
+                    const searchLatInput = document.getElementById('searchLat');
+                    const searchLngInput = document.getElementById('searchLng');
+                    if (searchLatInput) searchLatInput.value = position.lat;
+                    if (searchLngInput) searchLngInput.value = position.lng;
+                    
+                    // Reverse geocode to get the address
+                    try {
+                      const geocoder = L.Control.Geocoder.nominatim();
+                      geocoder.reverse(position, searchMap.options.crs.scale(searchMap.getZoom()), results => {
+                        if (results && results.length > 0) {
+                          const searchInput = document.getElementById('searchInput');
+                          if (searchInput) searchInput.value = results[0].name;
+                        }
+                      });
+                    } catch (err) {
+                      console.error('Error during reverse geocoding:', err);
+                    }
+                  });
+                  
+                  // Add geocoder control if available
+                  if (L.Control.Geocoder) {
+                    try {
+                      const searchGeocoder = L.Control.geocoder({
+                        defaultMarkGeocode: false,
+                        placeholder: 'Search for location...',
+                        position: 'topleft'
+                      }).addTo(searchMap);
+                      
+                      searchGeocoder.on('markgeocode', function(e) {
+                        // Remove existing marker
+                        if (searchMarker) {
+                          searchMap.removeLayer(searchMarker);
+                        }
+                        
+                        // Get the coordinates
+                        const latlng = e.geocode.center;
+                        
+                        // Add a new marker
+                        searchMarker = L.marker(latlng, {draggable: true}).addTo(searchMap);
+                        searchMap.setView(latlng, 15);
+                        
+                        // Update form values
+                        const searchLatInput = document.getElementById('searchLat');
+                        const searchLngInput = document.getElementById('searchLng');
+                        const searchInput = document.getElementById('searchInput');
+                        
+                        if (searchLatInput) searchLatInput.value = latlng.lat;
+                        if (searchLngInput) searchLngInput.value = latlng.lng;
+                        if (searchInput) searchInput.value = e.geocode.name;
+                        
+                        // Update marker drag event
+                        searchMarker.on('dragend', function(e) {
+                          const position = searchMarker.getLatLng();
+                          if (searchLatInput) searchLatInput.value = position.lat;
+                          if (searchLngInput) searchLngInput.value = position.lng;
+                          
+                          // Reverse geocode to get the address
+                          try {
+                            const geocoder = L.Control.Geocoder.nominatim();
+                            geocoder.reverse(position, searchMap.options.crs.scale(searchMap.getZoom()), results => {
+                              if (results && results.length > 0 && searchInput) {
+                                searchInput.value = results[0].name;
+                              }
+                            });
+                          } catch (err) {
+                            console.error('Error during reverse geocoding:', err);
+                          }
+                        });
+                      });
+                    } catch (err) {
+                      console.error('Error setting up geocoder:', err);
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error initializing map:', err);
+                }
+              }
+              
+              // Handle case where there's already a search term
+              const searchInput = document.getElementById('searchInput');
+              const searchLatInput = document.getElementById('searchLat');
+              const searchLngInput = document.getElementById('searchLng');
+              
+              if (searchInput && searchInput.value.trim() !== '' && searchLatInput && !searchLatInput.value) {
+                try {
+                  const geocoder = L.Control.Geocoder.nominatim();
+                  geocoder.geocode(searchInput.value, results => {
+                    if (results && results.length > 0) {
+                      const latlng = results[0].center;
+                      
+                      // Update hidden inputs
+                      if (searchLatInput) searchLatInput.value = latlng.lat;
+                      if (searchLngInput) searchLngInput.value = latlng.lng;
+                      
+                      // Update map and marker
+                      if (searchMarker && searchMap) {
+                        searchMap.removeLayer(searchMarker);
+                        searchMarker = L.marker(latlng, {draggable: true}).addTo(searchMap);
+                        searchMap.setView(latlng, 15);
+                        
+                        // Update marker drag event
+                        searchMarker.on('dragend', function(e) {
+                          const position = searchMarker.getLatLng();
+                          if (searchLatInput) searchLatInput.value = position.lat;
+                          if (searchLngInput) searchLngInput.value = position.lng;
+                          
+                          // Reverse geocode to get the address
+                          try {
+                            const geocoder = L.Control.Geocoder.nominatim();
+                            geocoder.reverse(position, searchMap.options.crs.scale(searchMap.getZoom()), results => {
+                              if (results && results.length > 0 && searchInput) {
+                                searchInput.value = results[0].name;
+                              }
+                            });
+                          } catch (err) {
+                            console.error('Error during reverse geocoding:', err);
+                          }
+                        });
+                      }
+                    }
+                  });
+                } catch (err) {
+                  console.error('Error geocoding search term:', err);
+                }
+              }
+              
+              // Fix map rendering issue by invalidating size
+              setTimeout(() => {
+                if (searchMap) searchMap.invalidateSize();
+              }, 100);
+            } else {
+              mapContainer.style.display = 'none';
+            }
+          });
+        }
+
+        // Add error handling for the form submission
+        const searchForm = document.querySelector('form');
+        if (searchForm) {
+          searchForm.addEventListener('submit', function(e) {
+            const searchInput = document.getElementById('searchInput');
+            const searchLat = document.getElementById('searchLat');
+            const searchLng = document.getElementById('searchLng');
+            
+            if (!searchInput || (!searchLat && !searchLng)) return;
+            
+            // If we have coordinates but no text, use a placeholder
+            if ((!searchInput.value.trim() || searchInput.value.trim() === '') && 
+                searchLat && searchLat.value && searchLng && searchLng.value) {
+              searchInput.value = 'Selected location';
+            }
+            
+            // If no search criteria provided, prevent submission
+            if (!searchInput.value.trim() && 
+                (!searchLat || !searchLat.value) && 
+                (!searchLng || !searchLng.value)) {
+              e.preventDefault();
+              alert('Please enter a search term or select a location on the map');
+            }
+          });
+        }
+
+        // Add event listener for search input changes
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.addEventListener('change', function() {
+            const searchLat = document.getElementById('searchLat');
+            if (this.value.trim() !== '' && searchLat && !searchLat.value) {
+              try {
+                const geocoder = L.Control.Geocoder.nominatim();
+                geocoder.geocode(this.value, results => {
+                  if (results && results.length > 0) {
+                    const searchLat = document.getElementById('searchLat');
+                    const searchLng = document.getElementById('searchLng');
+                    if (searchLat) searchLat.value = results[0].center.lat;
+                    if (searchLng) searchLng.value = results[0].center.lng;
+                  }
+                });
+              } catch (err) {
+                console.error('Error geocoding input change:', err);
+              }
+            }
+          });
+        }
+        
+        // Filter handling - safely check if elements exist
+        const tagFilter = document.getElementById('tagFilter');
+        if (tagFilter) {
+          tagFilter.addEventListener('change', function() {
+            updateFilters('tag', this.value);
+          });
+        }
+        
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+          categoryFilter.addEventListener('change', function() {
+            updateFilters('category', this.value);
+          });
+        }
+        
+        const statusFilter = document.getElementById('statusFilter');
+        if (statusFilter) {
+          statusFilter.addEventListener('change', function() {
+            updateFilters('status', this.value);
+          });
+        }
+        
+        const preferencesFilter = document.getElementById('preferencesFilter');
+        if (preferencesFilter) {
+          preferencesFilter.addEventListener('change', function() {
+            updateFilters('preferences', this.value);
+          });
+        }
+        
+        function updateFilters(param, value) {
+          const urlParams = new URLSearchParams(window.location.search);
+          
+          // If value is empty, remove the parameter
+          if (!value) {
+            urlParams.delete(param);
+          } else {
+            urlParams.set(param, value);
+          }
+          
+          window.location.href = '/rides?' + urlParams.toString();
+        }
+
+        // Enable multi-filter selection
+        const clickableFilters = document.querySelectorAll('.clickable-filter');
+        clickableFilters.forEach(filter => {
+          filter.addEventListener('click', function(event) {
+            event.preventDefault();
+            const href = this.getAttribute('href');
+            const urlParams = new URLSearchParams(href.substring(href.indexOf('?') + 1));
+            const currentParams = new URLSearchParams(window.location.search);
+            
+            // Get the parameter name and value
+            const entries = Array.from(urlParams.entries());
+            if (entries.length > 0) {
+              const [param, value] = entries[0];
+              
+              // If already selected (active), remove it from filter
+              if (this.classList.contains('active')) {
+                currentParams.delete(param);
+              } else {
+                // Otherwise add/replace it
+                currentParams.set(param, value);
+              }
+              
+              // Keep the search parameter if it exists
+              if (!currentParams.has('search') && document.getElementById('searchInput').value) {
+                currentParams.set('search', document.getElementById('searchInput').value);
+              }
+              
+              // Keep the coordinates if they exist
+              if (!currentParams.has('searchLat') && document.getElementById('searchLat').value) {
+                currentParams.set('searchLat', document.getElementById('searchLat').value);
+              }
+              
+              if (!currentParams.has('searchLng') && document.getElementById('searchLng').value) {
+                currentParams.set('searchLng', document.getElementById('searchLng').value);
+              }
+              
+              // Navigate to the new URL
+              window.location.href = '/rides?' + currentParams.toString();
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Error in rides_list script:', error);
       }
-      
-      window.location.href = '/rides?' + urlParams.toString();
-    }
-    
-    // Add event listener for search form submission
-    document.querySelector('form').addEventListener('submit', function(e) {
-      const searchInput = this.querySelector('input[name="search"]');
-      if (!searchInput.value.trim()) {
-        e.preventDefault();
-        alert('Please enter a search term');
-      }
     });
-    
+
     // Add event listeners for delete ride buttons
     document.querySelectorAll('.delete-ride').forEach(button => {
       button.addEventListener('click', function() {

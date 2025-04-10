@@ -19,11 +19,12 @@ class ReviewController {
             // Get reviews for this user
             const reviews = await ReviewModel.getReviewsForUser(userId, reviewType);
             
-            res.render('user_reviews', {
+            res.render('user_reviews_page', {
                 title: `Reviews for ${user.name}`,
                 user,
                 reviews,
-                reviewType
+                reviewType,
+                isCurrentUser: req.session.userId === userId
             });
         } catch (error) {
             console.error('Error in getReviewsForUser:', error);

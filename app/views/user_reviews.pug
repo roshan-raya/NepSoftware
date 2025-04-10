@@ -1,0 +1,51 @@
+//- This is a reusable template for displaying reviews
+//- Expects: reviews array
+
+.reviews-container.my-3
+  if reviews && reviews.length > 0
+    h4.mb-3
+      i.fas.fa-star.text-warning.me-2
+      | Ratings & Reviews (#{reviews.length})
+    .rating-summary.mb-3
+      - const avgRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+      .d-flex.align-items-center
+        .rating-stars.me-2
+          - for(let i = 1; i <= 5; i++)
+            if i <= Math.round(avgRating)
+              i.fas.fa-star.text-warning
+            else
+              i.far.fa-star.text-warning
+        span.fw-bold #{avgRating.toFixed(1)} out of 5
+      small.text-muted Based on #{reviews.length} reviews
+    
+    .list-group.review-list
+      each review in reviews
+        .list-group-item.review-item
+          .review-header.d-flex.align-items-center
+            img.rounded-circle.me-2(src=getProfilePhoto(review.reviewer_photo) alt='Reviewer photo' width='40' height='40')
+            .flex-grow-1
+              h6.mb-0= review.reviewer_name
+              small.text-muted
+                i.far.fa-calendar-alt.me-1
+                | #{new Date(review.created_at).toLocaleDateString()}
+            .rating-badge
+              - for(let i = 1; i <= 5; i++)
+                if i <= review.rating
+                  i.fas.fa-star.text-warning
+                else
+                  i.far.fa-star.text-muted
+          
+          if review.review_text
+            .review-content.mt-2
+              p.mb-0= review.review_text
+          
+          .review-ride-info.mt-2.small.text-muted
+            i.fas.fa-car.me-1
+            | Ride on 
+            | #{new Date(review.departure_time).toLocaleDateString()}
+            |  from 
+            span.text-primary= review.pickup_location
+  else
+    .alert.alert-info
+      i.fas.fa-info-circle.me-2
+      | No reviews available yet. 

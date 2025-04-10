@@ -7,6 +7,10 @@ html
     link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css')
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css')
     link(rel='stylesheet', href='/css/main.css')
+    // Leaflet CSS
+    link(rel='stylesheet', href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=' crossorigin='')
+    // OpenStreetMap Autocomplete
+    link(rel='stylesheet', href='https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css')
   body(class=userId ? 'authenticated' : '')
     nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.mb-4
       .container
@@ -89,4 +93,8 @@ html
     
     script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js')
     script(src='/js/auth.js')
+    // Leaflet JS
+    script(src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js' integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=' crossorigin='')
+    // OpenStreetMap Geocoder
+    script(src='https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js')
     block scripts 

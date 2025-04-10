@@ -2,14 +2,14 @@ extends layout
 
 block content
   .container
-    h1.mb-4 Offer a Ride
+    h1.mb-4 Edit Ride
     
     if error
       .alert.alert-danger #{error}
     
     .card
       .card-body
-        form(action='/rides/offer', method='POST')
+        form(action=`/rides/edit/${ride.id}`, method='POST')
           .mb-3
             label.form-label(for='pickupLocation') Pickup Location*
             .input-group.mb-2
@@ -18,15 +18,19 @@ block content
                 name='pickupLocation', 
                 placeholder='e.g., Putney Station', 
                 required,
-                value=formData ? formData.pickupLocation : ''
+                value=ride.pickup_location
               )
               button.btn.btn-outline-secondary.show-pickup-map-btn(type='button')
                 i.fas.fa-map-marker-alt
-              span.input-group-text.bg-warning.text-white.coordinate-status(title='No coordinates - map display requires coordinates')
-                i.fas.fa-exclamation-triangle
-            #pickup-map-container(style='height: 250px; display: none; margin-bottom: 10px;')
-            input(type='hidden', name='pickupLat', id='pickupLat', value=formData ? formData.pickupLat : '')
-            input(type='hidden', name='pickupLng', id='pickupLng', value=formData ? formData.pickupLng : '')
+              if ride.pickup_lat && ride.pickup_lng
+                span.input-group-text.bg-success.text-white.coordinate-status(title='Coordinates available')
+                  i.fas.fa-check
+              else
+                span.input-group-text.bg-warning.text-white.coordinate-status(title='No coordinates - map display requires coordinates')
+                  i.fas.fa-exclamation-triangle
+            #pickup-map-container(style=`height: 250px; display: ${ride.pickup_lat && ride.pickup_lng ? 'block' : 'none'}; margin-bottom: 10px;`)
+            input(type='hidden', name='pickupLat', id='pickupLat', value=ride.pickup_lat)
+            input(type='hidden', name='pickupLng', id='pickupLng', value=ride.pickup_lng)
           
           .mb-3
             label.form-label(for='dropoffLocation') Destination*
@@ -36,23 +40,28 @@ block content
                 name='dropoffLocation', 
                 placeholder='e.g., Roehampton University', 
                 required,
-                value=formData ? formData.dropoffLocation : ''
+                value=ride.destination
               )
               button.btn.btn-outline-secondary.show-dropoff-map-btn(type='button')
                 i.fas.fa-map-marker-alt
-              span.input-group-text.bg-warning.text-white.coordinate-status(title='No coordinates - map display requires coordinates')
-                i.fas.fa-exclamation-triangle
-            #dropoff-map-container(style='height: 250px; display: none; margin-bottom: 10px;')
-            input(type='hidden', name='dropoffLat', id='dropoffLat', value=formData ? formData.dropoffLat : '')
-            input(type='hidden', name='dropoffLng', id='dropoffLng', value=formData ? formData.dropoffLng : '')
+              if ride.destination_lat && ride.destination_lng
+                span.input-group-text.bg-success.text-white.coordinate-status(title='Coordinates available')
+                  i.fas.fa-check
+              else
+                span.input-group-text.bg-warning.text-white.coordinate-status(title='No coordinates - map display requires coordinates')
+                  i.fas.fa-exclamation-triangle
+            #dropoff-map-container(style=`height: 250px; display: ${ride.destination_lat && ride.destination_lng ? 'block' : 'none'}; margin-bottom: 10px;`)
+            input(type='hidden', name='dropoffLat', id='dropoffLat', value=ride.destination_lat)
+            input(type='hidden', name='dropoffLng', id='dropoffLng', value=ride.destination_lng)
           
+          - const departureDate = new Date(ride.departure_time).toISOString().slice(0, 16);
           .mb-3
             label.form-label(for='departureDatetime') Departure Date and Time*
             input.form-control#departureDatetime(
               type='datetime-local', 
               name='departureDatetime', 
               required,
-              value=formData ? formData.departureDatetime : ''
+              value=departureDate
             )
           
           .mb-3
@@ -63,35 +72,36 @@ block content
               min='1', 
               max='8', 
               required,
-              value=formData ? formData.seatsAvailable : '2'
+              value=ride.seats_available
             )
           
           .mb-3
             label.form-label(for='category') Ride Category*
             select.form-control#category(name='category', required)
-              option(value='Campus Routes', selected=formData && formData.category === 'Campus Routes') Campus Routes
-              option(value='Shopping Trips', selected=formData && formData.category === 'Shopping Trips') Shopping Trips
-              option(value='Airport Transfers', selected=formData && formData.category === 'Airport Transfers') Airport Transfers
-              option(value='Special Events', selected=formData && formData.category === 'Special Events') Special Events
-              option(value='Weekend Getaways', selected=formData && formData.category === 'Weekend Getaways') Weekend Getaways
+              option(value='Campus Routes', selected=ride.category === 'Campus Routes') Campus Routes
+              option(value='Shopping Trips', selected=ride.category === 'Shopping Trips') Shopping Trips
+              option(value='Airport Transfers', selected=ride.category === 'Airport Transfers') Airport Transfers
+              option(value='Special Events', selected=ride.category === 'Special Events') Special Events
+              option(value='Weekend Getaways', selected=ride.category === 'Weekend Getaways') Weekend Getaways
             small.form-text.text-muted Select the category that best describes your ride.
           
+          - const preferences = ride.preferences ? ride.preferences.split(',').map(p => p.trim()) : [];
           .mb-3
             label.form-label Ride Preferences
             .form-check
-              input.form-check-input#quietRide(type='checkbox', name='preferences', value='Quiet Ride', checked=formData && formData.preferences && formData.preferences.includes('Quiet Ride'))
+              input.form-check-input#quietRide(type='checkbox', name='preferences', value='Quiet Ride', checked=preferences.includes('Quiet Ride'))
               label.form-check-label(for='quietRide') Quiet Ride
             .form-check
-              input.form-check-input#musicAllowed(type='checkbox', name='preferences', value='Music Allowed', checked=formData && formData.preferences && formData.preferences.includes('Music Allowed'))
+              input.form-check-input#musicAllowed(type='checkbox', name='preferences', value='Music Allowed', checked=preferences.includes('Music Allowed'))
               label.form-check-label(for='musicAllowed') Music Allowed
             .form-check
-              input.form-check-input#petFriendly(type='checkbox', name='preferences', value='Pet Friendly', checked=formData && formData.preferences && formData.preferences.includes('Pet Friendly'))
+              input.form-check-input#petFriendly(type='checkbox', name='preferences', value='Pet Friendly', checked=preferences.includes('Pet Friendly'))
               label.form-check-label(for='petFriendly') Pet Friendly
             .form-check
-              input.form-check-input#smokingAllowed(type='checkbox', name='preferences', value='Smoking Allowed', checked=formData && formData.preferences && formData.preferences.includes('Smoking Allowed'))
+              input.form-check-input#smokingAllowed(type='checkbox', name='preferences', value='Smoking Allowed', checked=preferences.includes('Smoking Allowed'))
               label.form-check-label(for='smokingAllowed') Smoking Allowed
             .form-check
-              input.form-check-input#longTermParking(type='checkbox', name='preferences', value='Long-Term Parking Available', checked=formData && formData.preferences && formData.preferences.includes('Long-Term Parking Available'))
+              input.form-check-input#longTermParking(type='checkbox', name='preferences', value='Long-Term Parking Available', checked=preferences.includes('Long-Term Parking Available'))
               label.form-check-label(for='longTermParking') Long-Term Parking Available
             small.form-text.text-muted Select all that apply to your ride.
           
@@ -101,7 +111,7 @@ block content
               type='text', 
               name='tags', 
               placeholder='e.g., Morning, Putney, Commute', 
-              value=formData ? formData.tags : ''
+              value=ride.tags
             )
             small.form-text.text-muted Tags help others find your ride - separate multiple tags with commas.
           
@@ -111,10 +121,14 @@ block content
               .d-flex.flex-wrap.gap-2
                 each tag in tags
                   button.btn.btn-sm.btn-outline-secondary.tag-btn(type='button', data-tag=tag.name) #{tag.name}
+
+          .alert.alert-info.mb-3
+            i.fas.fa-info-circle.me-2
+            | Adding location coordinates enables the route map display for your ride.
           
           .d-grid.gap-2.d-md-flex.justify-content-md-end
-            a.btn.btn-secondary.me-md-2(href='/rides') Cancel
-            button.btn.btn-primary(type='submit') Offer Ride
+            a.btn.btn-secondary.me-md-2(href=`/rides/${ride.id}`) Cancel
+            button.btn.btn-primary(type='submit') Update Ride
 
 block scripts
   script.
@@ -124,7 +138,21 @@ block scripts
       let pickupMap, dropoffMap;
       let pickupMarker, dropoffMarker;
       const defaultLocation = [51.4613, -0.2227]; // Roehampton University coordinates
-
+      
+      // Get existing coordinates if available
+      const pickupLat = document.getElementById('pickupLat').value;
+      const pickupLng = document.getElementById('pickupLng').value;
+      const dropoffLat = document.getElementById('dropoffLat').value;
+      const dropoffLng = document.getElementById('dropoffLng').value;
+      
+      // Set initial pickup location
+      const initialPickupLocation = pickupLat && pickupLng ? 
+        [parseFloat(pickupLat), parseFloat(pickupLng)] : defaultLocation;
+        
+      // Set initial dropoff location
+      const initialDropoffLocation = dropoffLat && dropoffLng ? 
+        [parseFloat(dropoffLat), parseFloat(dropoffLng)] : defaultLocation;
+      
       // Function to update coordinate status indicators
       function updateCoordinateStatus() {
         const pickupCoordinates = document.getElementById('pickupLat').value && document.getElementById('pickupLng').value;
@@ -167,6 +195,15 @@ block scripts
       
       // Call updateCoordinateStatus initially to set the correct status
       updateCoordinateStatus();
+      
+      // Initialize the maps automatically if coordinates are available
+      if (pickupLat && pickupLng) {
+        initializePickupMap();
+      }
+      
+      if (dropoffLat && dropoffLng) {
+        initializeDropoffMap();
+      }
 
       // Listen for changes in the location fields
       document.getElementById('pickupLocation').addEventListener('input', function() {
@@ -210,13 +247,13 @@ block scripts
       // Function to initialize pickup map
       function initializePickupMap() {
         if (!pickupMap) {
-          pickupMap = L.map('pickup-map-container').setView(defaultLocation, 13);
+          pickupMap = L.map('pickup-map-container').setView(initialPickupLocation, 13);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(pickupMap);
           
-          // Add a marker at the default location
-          pickupMarker = L.marker(defaultLocation, {draggable: true}).addTo(pickupMap);
+          // Add a marker at the initial location
+          pickupMarker = L.marker(initialPickupLocation, {draggable: true}).addTo(pickupMap);
           
           // Update coordinates when marker is dragged
           pickupMarker.on('dragend', function(e) {
@@ -343,13 +380,13 @@ block scripts
       // Function to initialize dropoff map
       function initializeDropoffMap() {
         if (!dropoffMap) {
-          dropoffMap = L.map('dropoff-map-container').setView(defaultLocation, 13);
+          dropoffMap = L.map('dropoff-map-container').setView(initialDropoffLocation, 13);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(dropoffMap);
           
-          // Add a marker at the default location
-          dropoffMarker = L.marker(defaultLocation, {draggable: true}).addTo(dropoffMap);
+          // Add a marker at the initial location
+          dropoffMarker = L.marker(initialDropoffLocation, {draggable: true}).addTo(dropoffMap);
           
           // Update coordinates when marker is dragged
           dropoffMarker.on('dragend', function(e) {
