@@ -101,6 +101,66 @@ CREATE TABLE IF NOT EXISTS UserActivity (
     INDEX idx_user_id (user_id),
     INDEX idx_activity_type (activity_type)
 );
+-- Add columns to Ride_Requests table for payment tracking
+ALTER TABLE Ride_Requests 
+ADD COLUMN fare DECIMAL(10,2) DEFAULT NULL,
+ADD COLUMN payment_status ENUM('pending', 'paid', 'refunded', 'cancelled') DEFAULT NULL;
+
+-- Create Payments table
+CREATE TABLE IF NOT EXISTS Payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ride_id INT NOT NULL,
+    request_id INT NOT NULL,
+    passenger_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_method ENUM('credit_card', 'paypal', 'cash', 'bank_transfer') NOT NULL,
+    status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'pending',
+    transaction_id VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (ride_id) REFERENCES Rides(id) ON DELETE CASCADE,
+    FOREIGN KEY (request_id) REFERENCES Ride_Requests(id) ON DELETE CASCADE,
+    FOREIGN KEY (passenger_id) REFERENCES Users(id) ON DELETE CASCADE,
+    INDEX idx_ride (ride_id),
+    INDEX idx_request (request_id),
+    INDEX idx_passenger (passenger_id)
+);
+
+-- Create Payment_Methods table for saved payment methods
+CREATE TABLE IF NOT EXISTS Payment_Methods (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    method_type ENUM('credit_card', 'paypal', 'bank_account') NOT NULL,
+    details JSON NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+    INDEX idx_user (user_id)
+);
+
+-- Create Ride_Pricing table for dynamic pricing rules
+CREATE TABLE IF NOT EXISTS Ride_Pricing (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category VARCHAR(50) NOT NULL,
+    base_fare DECIMAL(10,2) NOT NULL,
+    rate_per_km DECIMAL(10,2) NOT NULL,
+    min_fare DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'GBP',
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_category (category)
+);
+
+-- Insert default pricing for different ride categories
+INSERT INTO Ride_Pricing (category, base_fare, rate_per_km, min_fare)
+VALUES
+    ('Campus Routes', 2.00, 0.50, 2.00),
+    ('Shopping Trips', 3.00, 0.60, 3.00),
+    ('Airport Transfers', 10.00, 0.80, 10.00),
+    ('Special Events', 5.00, 0.70, 5.00),
+    ('Weekend Getaways', 8.00, 0.75, 8.00); 
 
 -- Sample Users data (if needed for development purposes)
 INSERT IGNORE INTO Users (id, name, email, password, profile_photo, is_verified) VALUES
