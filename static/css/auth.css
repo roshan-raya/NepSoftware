@@ -70,7 +70,7 @@
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .form-group label {
@@ -80,17 +80,57 @@
   color: #555;
 }
 
+.form-group label .profile-photo-wrapper {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
 .form-group input {
   width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 1rem;
+  transition: border-color 0.2s ease;
 }
 
 .form-group input:focus {
   border-color: #4361ee;
   outline: none;
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.15);
+}
+
+.form-group input[type="date"] {
+  padding: 10px 12px;
+  color: #495057;
+  cursor: pointer;
+  background-color: white;
+  max-width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234361ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 18px;
+}
+
+.form-group input[type="date"]:focus {
+  border-color: #4361ee;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.15);
+}
+
+/* For browsers that still show calendar icon */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
 }
 
 .auth-btn {
@@ -123,67 +163,173 @@
   text-decoration: underline;
 }
 
-.auth-form .profile-photo-container {
+/* Photo upload styles */
+.photo-upload-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin: 15px 0;
-}
-
-.auth-form .profile-photo-wrapper {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  overflow: hidden;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #f0f3ff;
+  color: #4361ee;
+  border: 1px solid #4361ee;
+  border-radius: 4px;
   cursor: pointer;
-  border: 2px solid #ddd;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
 }
 
-.auth-form .profile-photo-wrapper:hover {
-  border-color: #4361ee;
-  transform: scale(1.05);
+.photo-upload-btn:hover {
+  background-color: #e3ecff;
 }
 
-.auth-form .profile-photo-wrapper img {
+.photo-hint {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 5px;
+}
+
+/* Circular photo upload styles */
+.photo-upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Photo upload animations */
+@keyframes pulseBorder {
+  0% {
+    box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(67, 97, 238, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+  }
+}
+
+.photo-upload-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #f8f9ff;
+  border: 2px dashed #4361ee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 10px rgba(67, 97, 238, 0.1);
+  -webkit-tap-highlight-color: transparent;
+  animation: pulseBorder 2s infinite;
+}
+
+.photo-upload-circle:hover {
+  transform: scale(1.05);
+  background-color: #e3ecff;
+  border-color: #3a56d4;
+  box-shadow: 0 6px 15px rgba(67, 97, 238, 0.2);
+  animation: none;
+}
+
+.photo-upload-circle:hover i,
+.photo-upload-circle:hover span {
+  color: #3a56d4;
+  transform: translateY(-2px);
+}
+
+.photo-upload-circle:active {
+  transform: scale(0.98);
+}
+
+.photo-upload-circle i {
+  font-size: 2.2rem;
+  color: #4361ee;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.photo-upload-circle span {
+  font-size: 0.85rem;
+  color: #4361ee;
+  font-weight: 600;
+  text-align: center;
+  padding: 0 5px;
+  transition: all 0.3s ease;
+}
+
+.photo-preview {
+  position: absolute;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: none;
+  transition: transform 0.5s ease;
 }
 
-.auth-form .edit-overlay {
+.photo-preview.visible {
+  display: block;
+  animation: zoomIn 0.4s forwards;
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.photo-hint {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 5px;
+  text-align: center;
+  max-width: 200px;
+}
+
+/* Photo upload overlay effects */
+.photo-upload-circle::after {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0) 60%, rgba(233,236,255,0.5) 100%);
+  pointer-events: none;
+}
+
+/* Photo has been selected state */
+.photo-selected .photo-upload-circle {
+  border-style: solid;
+  border-color: #4CAF50;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+  animation: none;
+}
+
+.photo-selected .photo-hint {
+  color: #4CAF50;
+}
+
+.d-flex {
   display: flex;
-  justify-content: center;
+}
+
+.align-items-center {
   align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
-.auth-form .profile-photo-wrapper:hover .edit-overlay {
-  opacity: 1;
-}
-
-.auth-form .edit-overlay i {
-  color: white;
-  font-size: 24px;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 8px;
-  border-radius: 50%;
-}
-
-.auth-form .photo-hint {
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-  margin-top: 5px;
+.ml-2 {
+  margin-left: 8px;
 }
 
 .auth-form .text-muted {
@@ -191,4 +337,9 @@
   color: #666;
   margin-top: 5px;
   display: block;
+}
+
+/* Stop the animation when photo is selected */
+.photo-selected .photo-upload-circle {
+  animation: none;
 }

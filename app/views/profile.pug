@@ -5,6 +5,9 @@ html(lang="en")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
     title User Profile - NepSoftware
     link(rel="stylesheet", href="/css/main.css")
+    link(rel="stylesheet", href="/css/profile.css")
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css")
   
   body
     .ride-share-app
@@ -38,6 +41,15 @@ html(lang="en")
             input#edit-photo-input.edit-photo-input(type="file", accept="image/*")
           
           .profile-info
+            // Profile error message container
+            .profile-photo-error#photo-error
+              i.fas.fa-exclamation-circle.me-2
+              span.error-text
+          
+            // Upload progress indicator
+            .upload-progress-container#upload-progress
+              .upload-progress-bar#progress-bar
+            
             .profile-field
               label Name
               p#profile-name= user.name
@@ -80,6 +92,15 @@ html(lang="en")
         .footer-bottom
           p &copy; 2023 NepSoftware - Roehampton University. All rights reserved.
 
+    // Image crop modal
+    .crop-modal#crop-modal
+      .crop-container
+        .crop-preview#crop-preview
+        .crop-controls
+          button.crop-btn.crop-cancel#crop-cancel Cancel
+          button.crop-btn.crop-save#crop-save Save Photo
+
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js")
     script.
       document.addEventListener('DOMContentLoaded', function() {
         const editProfileBtn = document.getElementById('edit-profile-btn');
@@ -91,6 +112,16 @@ html(lang="en")
         const editEmail = document.getElementById('edit-email');
         const editPhotoInput = document.getElementById('edit-photo-input');
         const profilePhoto = document.querySelector('.profile-photo');
+        const photoError = document.getElementById('photo-error');
+        const errorText = document.querySelector('.error-text');
+        const uploadProgress = document.getElementById('upload-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const cropModal = document.getElementById('crop-modal');
+        const cropPreview = document.getElementById('crop-preview');
+        const cropCancelBtn = document.getElementById('crop-cancel');
+        const cropSaveBtn = document.getElementById('crop-save');
+        
+        let cropper;
         
         // Edit profile button click handler
         editProfileBtn.addEventListener('click', function() {
@@ -128,6 +159,97 @@ html(lang="en")
           editProfileBtn.style.display = 'inline-block';
         });
         
+        // Profile photo change handler with crop functionality
+        if (editPhotoInput) {
+          editPhotoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            
+            // Clear previous errors
+            photoError.classList.remove('show');
+            
+            // Validate file
+            if (file) {
+              // Check file type
+              const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+              if (!validTypes.includes(file.type)) {
+                errorText.textContent = 'Please select a valid image file (JPEG, PNG, GIF)';
+                photoError.classList.add('show');
+                return;
+              }
+              
+              // Check file size (max 5MB)
+              if (file.size > 5 * 1024 * 1024) {
+                errorText.textContent = 'Image size should be less than 5MB';
+                photoError.classList.add('show');
+                return;
+              }
+              
+              // Initialize cropper
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                // Show crop modal
+                cropPreview.innerHTML = `<img src="${e.target.result}" id="crop-image">`;
+                cropModal.classList.add('show');
+                
+                // Initialize cropper
+                const cropImage = document.getElementById('crop-image');
+                cropper = new Cropper(cropImage, {
+                  aspectRatio: 1,
+                  viewMode: 2,
+                  minContainerWidth: 250,
+                  minContainerHeight: 250,
+                });
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        }
+        
+        // Crop cancel button
+        cropCancelBtn.addEventListener('click', function() {
+          cropModal.classList.remove('show');
+          editPhotoInput.value = '';
+          if (cropper) {
+            cropper.destroy();
+            cropper = null;
+          }
+        });
+        
+        // Crop save button
+        cropSaveBtn.addEventListener('click', function() {
+          if (cropper) {
+            // Get cropped canvas
+            const canvas = cropper.getCroppedCanvas({
+              width: 300,
+              height: 300
+            });
+            
+            // Convert canvas to blob
+            canvas.toBlob(function(blob) {
+              // Close crop modal
+              cropModal.classList.remove('show');
+              
+              // Update preview image
+              profilePhoto.src = canvas.toDataURL();
+              
+              // Create file from blob for upload
+              const croppedFile = new File([blob], 'profile-photo.jpg', { type: 'image/jpeg' });
+              
+              // Create a new FileList
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(croppedFile);
+              editPhotoInput.files = dataTransfer.files;
+              
+              // Automatic upload if auto-save is enabled
+              // You can trigger automatic upload here if needed
+              
+              // Destroy cropper
+              cropper.destroy();
+              cropper = null;
+            }, 'image/jpeg', 0.9);
+          }
+        });
+        
         // Save profile button click handler
         saveProfileBtn.addEventListener('click', function() {
           const name = editName.value;
@@ -142,59 +264,82 @@ html(lang="en")
             formData.append('photo', photoFile);
           }
           
-          // Send update request
-          fetch(`/users/${profileName.dataset.userId}/update`, {
-            method: 'POST',
-            body: formData
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              // Update displayed values
-              profileName.textContent = name;
-              profileEmail.textContent = email;
-              
-              if (data.photo_url) {
-                profilePhoto.src = data.photo_url;
+          // Show progress bar
+          uploadProgress.classList.add('show');
+          progressBar.style.width = '0%';
+          
+          // Send update request with progress tracking
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', `/users/${user.id}/update`, true);
+          
+          // Track upload progress
+          xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+              const percentComplete = (e.loaded / e.total) * 100;
+              progressBar.style.width = percentComplete + '%';
+            }
+          };
+          
+          xhr.onload = function() {
+            // Complete the progress bar
+            progressBar.style.width = '100%';
+            
+            // Hide progress bar after a short delay
+            setTimeout(() => {
+              uploadProgress.classList.remove('show');
+            }, 500);
+            
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (data.success) {
+                // Update displayed values
+                profileName.textContent = name;
+                profileEmail.textContent = email;
+                
+                if (data.photo_url) {
+                  profilePhoto.src = data.photo_url;
+                }
+                
+                // Hide edit fields
+                profileName.style.display = 'block';
+                profileEmail.style.display = 'block';
+                editName.style.display = 'none';
+                editEmail.style.display = 'none';
+                
+                // Hide save and cancel buttons
+                saveProfileBtn.style.display = 'none';
+                cancelEditBtn.style.display = 'none';
+                
+                // Show edit button
+                editProfileBtn.style.display = 'inline-block';
+                
+                // Clear file input
+                editPhotoInput.value = '';
+                
+                // Show success message
+                alert('Profile updated successfully!');
+              } else {
+                errorText.textContent = data.error || 'Failed to update profile. Please try again.';
+                photoError.classList.add('show');
               }
-              
-              // Hide edit fields
-              profileName.style.display = 'block';
-              profileEmail.style.display = 'block';
-              editName.style.display = 'none';
-              editEmail.style.display = 'none';
-              
-              // Hide save and cancel buttons
-              saveProfileBtn.style.display = 'none';
-              cancelEditBtn.style.display = 'none';
-              
-              // Show edit button
-              editProfileBtn.style.display = 'inline-block';
-              
-              alert('Profile updated successfully!');
-            } else {
-              alert(data.error || 'Failed to update profile. Please try again.');
+            } catch (error) {
+              console.error('Error parsing response:', error);
+              errorText.textContent = 'An error occurred while updating your profile. Please try again.';
+              photoError.classList.add('show');
             }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating your profile. Please try again.');
-          });
+          };
+          
+          xhr.onerror = function() {
+            // Hide progress bar
+            uploadProgress.classList.remove('show');
+            
+            // Show error
+            errorText.textContent = 'Network error occurred. Please try again.';
+            photoError.classList.add('show');
+          };
+          
+          xhr.send(formData);
         });
-        
-        // Profile photo change handler
-        if (editPhotoInput) {
-          editPhotoInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = function(e) {
-                profilePhoto.src = e.target.result;
-              };
-              reader.readAsDataURL(file);
-            }
-          });
-        }
         
         // Logout button click handler
         const logoutBtn = document.getElementById('logout-btn');

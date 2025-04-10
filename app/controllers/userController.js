@@ -122,14 +122,32 @@ class UserController {
 
     static async signUp(req, res) {
         try {
-            const { name, email, password } = req.body;
+            const { name, email, password, dob } = req.body;
             const photo = req.file ? req.file.filename : null;
 
             // Validate input
-            if (!name || !email || !password) {
+            if (!name || !email || !password || !dob) {
                 return res.status(400).json({ 
                     success: false,
                     error: 'All fields are required' 
+                });
+            }
+            
+            // Validate age (must be 18+)
+            const birthDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            // Adjust age if birth month hasn't occurred yet this year
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            if (age < 18) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'You must be at least 18 years old to use this service' 
                 });
             }
 
@@ -155,12 +173,13 @@ class UserController {
                 .update(password)
                 .digest('hex');
 
-            // Create user with photo
+            // Create user with photo and dob
             const userId = await UserModel.create({ 
                 name, 
                 email, 
                 password: hashedPassword,
-                photo 
+                photo,
+                dob 
             });
             
             // Set user session
@@ -298,17 +317,31 @@ class UserController {
 
             const { name, email } = req.body;
             let profile_photo = existingUser.profile_photo;
+            let photoUpdated = false;
 
             // Handle profile photo upload if a file was provided
             if (req.file) {
-                // Delete old photo if it exists and is not the default
-                if (existingUser.profile_photo && !existingUser.profile_photo.includes('default.jpg')) {
-                    const oldPhotoPath = path.join(__dirname, '..', 'static', 'images', 'profiles', existingUser.profile_photo);
-                    if (fs.existsSync(oldPhotoPath)) {
-                        fs.unlinkSync(oldPhotoPath);
+                try {
+                    // Delete old photo if it exists and is not the default
+                    if (existingUser.profile_photo && !existingUser.profile_photo.includes('default.jpg')) {
+                        const oldPhotoPath = path.join(__dirname, '../../static/images/profiles', existingUser.profile_photo);
+                        if (fs.existsSync(oldPhotoPath)) {
+                            fs.unlinkSync(oldPhotoPath);
+                        }
                     }
+                    profile_photo = req.file.filename;
+                    photoUpdated = true;
+                    
+                    // Log the photo update activity
+                    await UserActivityModel.logPhotoUpdate(userId, {
+                        filename: profile_photo,
+                        size: req.file.size,
+                        originalName: req.file.originalname
+                    });
+                } catch (photoError) {
+                    console.error('Error handling profile photo:', photoError);
+                    // Continue with the rest of the update even if photo update fails
                 }
-                profile_photo = req.file.filename;
             }
 
             // Update user
@@ -317,6 +350,8 @@ class UserController {
             res.json({ 
                 success: true, 
                 message: 'Profile updated successfully',
+                photo_updated: photoUpdated,
+                photo_url: `/images/profiles/${profile_photo}`,
                 user: {
                     id: updatedUser.id,
                     name: updatedUser.name,

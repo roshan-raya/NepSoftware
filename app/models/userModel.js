@@ -118,7 +118,7 @@ class UserModel {
         return user;
     }
 
-    static async create({ name, email, password, photo }) {
+    static async create({ name, email, password, photo, dob }) {
         try {
             // Validate password
             if (!password || password.length < 6) {
@@ -131,9 +131,9 @@ class UserModel {
                 throw new Error('Email already registered');
             }
 
-            // Insert new user with photo path
-            const sql = 'INSERT INTO Users (name, email, password, profile_photo) VALUES (?, ?, ?, ?)';
-            const result = await db.query(sql, [name, email, password, photo]);
+            // Insert new user with photo path and dob
+            const sql = 'INSERT INTO Users (name, email, password, profile_photo, date_of_birth) VALUES (?, ?, ?, ?, ?)';
+            const result = await db.query(sql, [name, email, password, photo, dob]);
             
             if (!result.insertId) {
                 throw new Error('Failed to create user');

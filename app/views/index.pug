@@ -16,6 +16,7 @@ html(lang="en")
     link(rel="stylesheet", href="/css/help.css")
     link(rel="stylesheet", href="/css/footer.css")
     link(rel="stylesheet", href="/css/auth.css")
+    link(rel="stylesheet", href="/css/profile.css")
     link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
   
   body
@@ -62,6 +63,10 @@ html(lang="en")
               label(for="signup-name") Full Name
               input#signup-name(type="text", placeholder="Enter your full name", required)
             .form-group
+              label(for="signup-dob") Date of Birth
+              input#signup-dob(type="date", required)
+              small.text-muted You must be 18 years or older to use this service
+            .form-group
               label(for="signup-email") Email
               input#signup-email(type="email", placeholder="Enter your Roehampton email", required)
               small.text-muted Must be a valid @roehampton.ac.uk email
@@ -72,12 +77,12 @@ html(lang="en")
               label(for="signup-confirm") Confirm Password
               input#signup-confirm(type="password", placeholder="Confirm your password", required)
             .form-group
-              label(for="signup-photo") Profile Picture
-              .profile-photo-container
-                .profile-photo-wrapper
-                  img#photo-preview(src="/static/images/profiles/default.jpg", alt="Profile photo preview")
-                  .edit-overlay
-                    i.fas.fa-pencil-alt
+              label(for="signup-photo") Profile Picture 
+              .photo-upload-container
+                .photo-upload-circle#photo-upload-circle(onclick="document.getElementById('signup-photo').click()")
+                  img#photo-preview.photo-preview(alt="Profile photo preview")
+                  i.fas.fa-camera
+                  span Upload Photo
                 input#signup-photo(type="file", name="photo", accept="image/*", style="display: none;")
                 p.photo-hint Supported formats: JPG, PNG, GIF (max 5MB)
             button.auth-btn(type="submit") Sign Up
@@ -94,7 +99,7 @@ html(lang="en")
           p.hero-description Convenient, affordable, and eco-friendly rides around campus and beyond.
           .button-group
             button.btn.btn-primary#book-ride-btn Book a Ride
-            button.btn.btn-secondary#offer-ride-btn Offer a Ride
+            button.btn.btn-blue#offer-ride-btn Offer a Ride
 
       section.colleges
         h2.section-title Our Colleges
@@ -278,8 +283,7 @@ html(lang="en")
         const logoutBtn = document.getElementById('logout-btn');
         const ridesLink = document.getElementById('rides-link');
         const photoInput = document.getElementById('signup-photo');
-        const photoPreview = document.getElementById('photo-preview');
-        const photoWrapper = document.querySelector('.profile-photo-wrapper');
+        const photoUploadBtn = document.querySelector('.photo-upload-btn');
         const offerRideBtn = document.getElementById('offer-ride-btn');
         
         // Check if user is logged in
@@ -292,36 +296,50 @@ html(lang="en")
           ridesLink.href = '/rides';
         }
         
-        // Handle photo upload preview
-        photoWrapper.addEventListener('click', function() {
-          photoInput.click();
-        });
+        // Handle photo upload
+        if (photoInput) {
+          photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+              // Validate file type
+              if (!file.type.match('image.*')) {
+                alert('Please select an image file (JPG, PNG, or GIF)');
+                this.value = '';
+                return;
+              }
+              
+              // Validate file size (5MB)
+              if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                this.value = '';
+                return;
+              }
 
-        photoInput.addEventListener('change', function(e) {
-          const file = e.target.files[0];
-          if (file) {
-            // Validate file type
-            if (!file.type.match('image.*')) {
-              alert('Please select an image file (JPG, PNG, or GIF)');
-              this.value = '';
-              return;
+              // Show preview in circular upload area
+              const photoPreview = document.getElementById('photo-preview');
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                photoPreview.src = e.target.result;
+                photoPreview.classList.add('visible');
+                
+                // Hide the icon and text when preview is visible
+                const uploadCircle = document.getElementById('photo-upload-circle');
+                const photoContainer = document.querySelector('.photo-upload-container');
+                const icon = uploadCircle.querySelector('i');
+                const span = uploadCircle.querySelector('span');
+                
+                if (icon && span) {
+                  icon.style.display = 'none';
+                  span.style.display = 'none';
+                }
+                
+                // Add the photo-selected class to show success state
+                photoContainer.classList.add('photo-selected');
+              };
+              reader.readAsDataURL(file);
             }
-            
-            // Validate file size (5MB)
-            if (file.size > 5 * 1024 * 1024) {
-              alert('File size must be less than 5MB');
-              this.value = '';
-              return;
-            }
-
-            // Show preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-              photoPreview.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-          }
-        });
+          });
+        }
         
         // Rides link click handler
         ridesLink.addEventListener('click', function(e) {
@@ -498,11 +516,33 @@ html(lang="en")
           e.preventDefault();
           
           const name = document.getElementById('signup-name').value;
+          const dob = document.getElementById('signup-dob').value;
           const email = document.getElementById('signup-email').value;
           const password = document.getElementById('signup-password').value;
           const confirmPassword = document.getElementById('signup-confirm').value;
           const photoFile = document.getElementById('signup-photo').files[0];
           const submitButton = signupForm.querySelector('button[type="submit"]');
+          
+          // Validate date of birth (18+ check)
+          if (dob) {
+            const birthDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            // Adjust age if birth month hasn't occurred yet this year
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+              age--;
+            }
+            
+            if (age < 18) {
+              alert('You must be at least 18 years old to use this service.');
+              return;
+            }
+          } else {
+            alert('Please enter your date of birth.');
+            return;
+          }
           
           // Validate email domain
           if (!email.endsWith('@roehampton.ac.uk')) {
@@ -530,6 +570,7 @@ html(lang="en")
             // Create FormData object
             const formData = new FormData();
             formData.append('name', name);
+            formData.append('dob', dob);
             formData.append('email', email);
             formData.append('password', password);
             if (photoFile) {
@@ -575,7 +616,6 @@ html(lang="en")
               } else {
                 // Reset form and reload
                 signupForm.reset();
-                photoPreview.src = '/static/images/profiles/default.jpg';
                 window.location.reload();
               }
             } else {

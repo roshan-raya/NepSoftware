@@ -89,6 +89,18 @@ class UserActivityModel {
         }
     }
     
+    static async logPhotoUpdate(userId, photoData) {
+        try {
+            return await this.logActivity(userId, 'profile_photo_updated', {
+                detail: 'Updated profile photo',
+                ...photoData
+            });
+        } catch (error) {
+            console.error('Error in logPhotoUpdate:', error);
+            throw error;
+        }
+    }
+    
     // Format activity for display
     static formatActivity(activity) {
         let activityText = '';
@@ -108,6 +120,9 @@ class UserActivityModel {
                 break;
             case 'profile_updated':
                 activityText = `Updated profile ${activityData?.detail ? ': ' + activityData.detail : ''}`;
+                break;
+            case 'profile_photo_updated':
+                activityText = `Updated profile photo`;
                 break;
             case 'review_posted':
                 activityText = `Posted a ${activityData?.review_type || ''} review`;
