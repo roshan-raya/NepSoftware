@@ -98,12 +98,22 @@ jobs:
         chmod 600 ~/.ssh/deploy_key
         
         # Add host to known hosts
-        ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+        if [ -n "$DEPLOY_HOST" ]; then
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+        else
+          echo "Error: DEPLOY_HOST is not set"
+          exit 1
+        fi
         
         # Deploy using SSH
-        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST '
-          cd /opt/ridesharing-app
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
-          docker-compose down
-          docker-compose up -d
-        ' 
+        if [ -n "$DEPLOY_USER" ] && [ -n "$DEPLOY_HOST" ]; then
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_HOST" '
+            cd /opt/ridesharing-app
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+            docker-compose down
+            docker-compose up -d
+          '
+        else
+          echo "Error: DEPLOY_USER or DEPLOY_HOST is not set"
+          exit 1
+        fi 
