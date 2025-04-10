@@ -6,7 +6,7 @@ module.exports = {
   coverageReporters: ['text', 'lcov'],
   verbose: true,
   testTimeout: 10000,
-  setupFiles: [],
+  setupFiles: ['<rootDir>/config/test.config.js'],
   globals: {
     'process.env': {
       NODE_ENV: 'test',
