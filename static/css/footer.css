@@ -1,62 +1,32 @@
-/* 
- * Footer Styles
- * This file contains styles for the website footer,
- * including layout, typography, and interactive elements.
- * The footer is organized into sections with links and information.
- */
-
-/* Main Footer Container
- * Sets the background color, text color, and padding
- * Creates a dark theme for the footer section
- */
+/* Footer */
 .footer {
     background-color: #1c2b5a;
     color: white;
     padding: 70px 5% 20px;
-}
-
-/* Footer Content Layout
- * Flexbox container for footer sections
- * Responsive layout with wrapping
- * Centers content with max-width
- */
-.footer-content {
+  }
+  
+  .footer-content {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
     max-width: 1200px;
     margin: 0 auto;
-}
-
-/* Footer Section Container
- * Individual sections within the footer
- * Minimum width to prevent squishing
- * Bottom margin for spacing
- */
-.footer-section {
+  }
+  
+  .footer-section {
     flex: 1;
     min-width: 250px;
     margin-bottom: 30px;
-}
-
-/* Footer Section Title
- * Styling for section headings
- * Includes decorative underline
- * Uses white color for contrast
- */
-.footer-title {
+  }
+  
+  .footer-title {
     font-size: 1.3rem;
     margin-bottom: 20px;
     color: #fff;
     position: relative;
-}
-
-/* Footer Title Decoration
- * Adds an underline accent to section titles
- * Uses brand color for consistency
- * Positioned below the title
- */
-.footer-title::after {
+  }
+  
+  .footer-title::after {
     content: '';
     position: absolute;
     bottom: -8px;
@@ -64,53 +34,32 @@
     width: 40px;
     height: 3px;
     background-color: #4361ee;
-}
-
-/* Footer Text Styles
- * Muted color for secondary text
- * Consistent spacing between elements
- */
-.footer-text {
+  }
+  
+  .footer-text {
     color: #bbb;
     margin-bottom: 10px;
-}
-
-/* Footer Links List
- * Spacing between list items
- * Consistent vertical rhythm
- */
-.footer-links li {
+  }
+  
+  .footer-links li {
     margin-bottom: 10px;
-}
-
-/* Footer Link Styles
- * Muted color for links
- * Smooth color transition
- */
-.footer-links a {
+  }
+  
+  .footer-links a {
     color: #bbb;
     transition: color 0.3s ease;
-}
-
-/* Footer Link Hover Effect
- * Changes color to brand color on hover
- * Smooth transition animation
- */
-.footer-links a:hover {
+  }
+  
+  .footer-links a:hover {
     color: #4361ee;
-}
-
-/* Footer Bottom Section
- * Copyright and additional information
- * Separated with a subtle border
- * Muted text color for secondary information
- */
-.footer-bottom {
+  }
+  
+  .footer-bottom {
     text-align: center;
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     color: #888;
     font-size: 0.9rem;
-}
+  }
   

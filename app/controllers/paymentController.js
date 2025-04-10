@@ -143,12 +143,12 @@ class PaymentController {
                 });
             }
             
-            // Create payment record
+            // Create payment record - ensure amount is stored as a number
             const paymentId = await PaymentModel.createPayment({
                 rideId,
                 requestId,
                 passengerId: userId,
-                amount,
+                amount: parseFloat(amount),
                 method: paymentMethod,
                 status: 'completed'
             });

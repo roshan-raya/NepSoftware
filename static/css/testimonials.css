@@ -1,42 +1,19 @@
-/* 
- * Testimonials Section Styles
- * This file contains styles for the testimonials section of the website
- * Includes layout, card design, and responsive adjustments
- */
-
-/* Main Testimonials Section
- * Full-width section with consistent padding
- * White background for clean presentation
- * Generous vertical padding for visual breathing room
- */
+/* Testimonials Section */
 .testimonials {
     padding: 100px 5%;
     background-color: white;
-}
-
-/* Testimonials Container
- * Flexbox layout for responsive card arrangement
- * Centered content with consistent spacing
- * Maximum width constraint for large screens
- * Wrapping enabled for multiple rows
- */
-.testimonials-container {
+  }
+  
+  .testimonials-container {
     display: flex;
     justify-content: center;
     gap: 40px;
     flex-wrap: wrap;
     max-width: 1200px;
     margin: 0 auto;
-}
-
-/* Individual Testimonial Card
- * Light gray background with blue accent border
- * Subtle shadow for depth
- * Rounded corners on right side
- * Maximum width constraint for readability
- * Relative positioning for quote decoration
- */
-.testimonial {
+  }
+  
+  .testimonial {
     background-color: #f9f9f9;
     border-left: 4px solid #4361ee;
     padding: 30px;
@@ -44,15 +21,9 @@
     max-width: 500px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     position: relative;
-}
-
-/* Quote Decoration
- * Large quotation mark as background element
- * Positioned absolutely within testimonial card
- * Semi-transparent blue color
- * Serif font for traditional quote appearance
- */
-.testimonial::before {
+  }
+  
+  .testimonial::before {
     content: '"';
     position: absolute;
     top: 10px;
@@ -61,43 +32,29 @@
     color: #4361ee;
     opacity: 0.1;
     font-family: Georgia, serif;
-}
-
-/* Testimonial Text
- * Italic style for quote appearance
- * Bottom margin for spacing
- * Z-index to ensure text appears above quote decoration
- */
-.testimonial-text {
+  }
+  
+  .testimonial-text {
     font-style: italic;
     margin-bottom: 15px;
     position: relative;
     z-index: 1;
-}
-
-/* Author Information
- * Bold weight for emphasis
- * Brand blue color for consistency
- */
-.testimonial-author {
+  }
+  
+  .testimonial-author {
     font-weight: 600;
     color: #4361ee;
-}
-
-/* Responsive Design
- * Stack testimonials vertically on mobile
- * Center alignment for better mobile presentation
- * Adjusted width and spacing for smaller screens
- */
-@media screen and (max-width: 768px) {
+  }
+  
+  @media screen and (max-width: 768px) {
     .testimonials-container {
-        flex-direction: column;
-        align-items: center;
+      flex-direction: column;
+      align-items: center;
     }
     
     .testimonial {
-        width: 100%;
-        max-width: 400px;
-        margin-bottom: 30px;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 30px;
     }
-}
+  }

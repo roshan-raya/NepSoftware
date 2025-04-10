@@ -1,171 +1,89 @@
-/* 
- * How It Works Section Styles
- * This file contains styles for the process explanation section,
- * including step cards, icons, and animations.
- * The section is designed to clearly explain the platform's workflow.
- */
-
-/* How It Works Section Container
- * Main container for the process section
- * Adds padding and background color
- * Centers content with max-width
- */
+/* How It Works Section */
 .how-it-works {
-    padding: 80px 5%;
-    background-color: #f8f9fa;
-}
-
-/* Section Title
- * Styling for the main heading
- * Adds bottom margin for spacing
- * Uses brand color for emphasis
- */
-.section-title {
-    text-align: center;
-    margin-bottom: 40px;
-    color: #4361ee;
-}
-
-/* Steps Container
- * Grid layout for process steps
- * Adds gap between steps
- * Responsive column count
- */
-.steps-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
+    padding: 100px 5%;
+    background-color: white;
+  }
+  
+  .steps-container {
+    display: flex;
+    justify-content: space-between;
     max-width: 1200px;
     margin: 0 auto;
-}
-
-/* Step Card
- * Individual process step container
- * White background with shadow
- * Adds padding and border radius
- * Includes hover effect
- */
-.step-card {
-    background-color: white;
-    padding: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .step {
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    padding: 20px;
+    margin: 0 10px 20px;
+    background-color: #f9f9f9;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-/* Step Card Hover Effect
- * Slight lift effect on hover
- * Smooth transition animation
- */
-.step-card:hover {
-    transform: translateY(-5px);
-}
-
-/* Step Number
- * Circular badge for step number
- * Brand color background
- * White text for contrast
- * Fixed dimensions
- */
-.step-number {
-    width: 40px;
-    height: 40px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .step:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .step-icon {
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
     background-color: #4361ee;
     color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
-
-/* Step Icon
- * Styling for process icons
- * Fixed size for consistency
- * Brand color for emphasis
- * Adds bottom margin
- */
-.step-icon {
     font-size: 2rem;
-    color: #4361ee;
-    margin-bottom: 20px;
-}
-
-/* Step Title
- * Styling for step headings
- * Adds bottom margin
- * Uses dark color for readability
- */
-.step-title {
-    font-size: 1.3rem;
     font-weight: bold;
-    margin-bottom: 15px;
-    color: #333;
-}
-
-/* Step Description
- * Styling for step explanations
- * Muted color for readability
- * Adds line height for spacing
- */
-.step-description {
-    color: #666;
-    line-height: 1.6;
-}
-
-/* Connector Line
- * Visual line connecting steps
- * Hidden on mobile
- * Absolute positioning
- */
-.connector-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: #ddd;
-    z-index: -1;
-}
-
-/* Connector Line Pseudo-element
- * Creates arrow effect
- * Uses brand color
- * Positioned at end of line
- */
-.connector-line::after {
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .step-icon::before {
     content: '';
     position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 5px 0 5px 10px;
-    border-color: transparent transparent transparent #4361ee;
-}
-
-/* Mobile Responsive Design
- * Adjusts layout for smaller screens
- * Modifies spacing and font sizes
- * Hides connector lines
- */
-@media (max-width: 768px) {
-    .how-it-works {
-        padding: 40px 5%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent 25%, rgba(255, 255, 255, 0.2) 50%, transparent 75%);
+    top: -100%;
+    left: -100%;
+    animation: shine 3s infinite linear;
+  }
+  
+  @keyframes shine {
+    0% {
+      top: -100%;
+      left: -100%;
     }
-
+    20%, 100% {
+      top: 100%;
+      left: 100%;
+    }
+  }
+  
+  .step-title {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .step-description {
+    color: #666;
+  }
+  
+  @media screen and (max-width: 768px) {
     .steps-container {
-        grid-template-columns: 1fr;
+      flex-direction: column;
+      align-items: center;
     }
-
-    .connector-line {
-        display: none;
+    
+    .step {
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 30px;
     }
-
-    .step-card {
-        padding: 20px;
-    }
-}
+  }

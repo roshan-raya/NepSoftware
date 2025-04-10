@@ -363,8 +363,7 @@ class RideController {
             // Update available seats
             await RideModel.updateRideSeats(rideId);
             
-            // Redirect back to the ride detail page 
-            // The passenger will be notified to make payment
+            // Redirect back to the ride detail page
             res.redirect(`/rides/${rideId}`);
         } catch (error) {
             console.error(error);

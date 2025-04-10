@@ -1,151 +1,82 @@
-/* 
- * Header Styles
- * This file contains styles for the website header,
- * including navigation bars, dropdown menus, and mobile responsiveness.
- * The header is designed to be fixed at the top with a clean, modern look.
- */
-
-/* Main Header Container
- * Fixed position at the top of the page
- * Full width with flexbox layout
- * White background with subtle shadow
- * High z-index to stay above other content
- */
+/* Header Styles */
 .header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 5%;
+    padding: 20px 5%;
     background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-}
-
-/* Logo Container
- * Flex container for logo and text
- * Aligns items vertically center
- * Adds spacing between logo and text
- */
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Logo Image
- * Fixed dimensions for logo
- * Maintains aspect ratio
- */
-.logo {
-    width: 40px;
-    height: 40px;
-}
-
-/* Logo Text
- * Bold text for brand name
- * Brand color for emphasis
- * Larger font size for visibility
- */
-.logo-text {
-    font-weight: bold;
-    color: #4361ee;
-    font-size: 1.2rem;
-}
-
-/* Navigation Menu
- * Flex container for navigation links
- * Centers items horizontally
- * Adds spacing between items
- */
-.nav-menu {
-    display: flex;
-    gap: 20px;
-}
-
-/* Navigation Links
- * Removes default link styling
- * Adds smooth color transition
- * Uses brand color for text
- */
-.nav-menu a {
-    text-decoration: none;
-    color: #4361ee;
-    transition: color 0.3s ease;
-}
-
-/* Navigation Link Hover Effect
- * Darkens text color on hover
- * Smooth transition animation
- */
-.nav-menu a:hover {
-    color: #2a3d9a;
-}
-
-/* Mobile Menu Button
- * Hidden on desktop, visible on mobile
- * Custom styling for hamburger menu
- * Adds cursor pointer
- */
-.mobile-menu-btn {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #4361ee;
-}
-
-/* Mobile Menu Container
- * Hidden by default, shown on mobile
- * Full width dropdown menu
- * Absolute positioning below header
- * White background with shadow
- */
-.mobile-menu {
-    display: none;
-    position: absolute;
-    top: 70px;
-    left: 0;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    position: fixed;
     width: 100%;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-}
-
-/* Mobile Menu Links
- * Stacked layout for mobile navigation
- * Adds spacing between items
- * Centers text alignment
- */
-.mobile-menu a {
-    display: block;
-    padding: 10px 0;
-    text-align: center;
-}
-
-/* Mobile Responsive Design
- * Adjusts layout for screens below 768px
- * Hides desktop menu, shows mobile button
- * Adjusts header padding
- */
-@media (max-width: 768px) {
-    .nav-menu {
-        display: none;
+    top: 0;
+    z-index: 1000;
+    animation: slideDown 0.5s ease;
+  }
+  
+  @keyframes slideDown {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
     }
-
-    .mobile-menu-btn {
-        display: block;
+    to {
+      transform: translateY(0);
+      opacity: 1;
     }
-
-    .mobile-menu.active {
-        display: block;
-    }
-
+  }
+  
+  .logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #4361ee;
+    letter-spacing: -1px;
+  }
+  
+  .nav-list {
+    display: flex;
+  }
+  
+  .nav-item {
+    margin-left: 30px;
+  }
+  
+  .nav-link {
+    font-weight: 600;
+    position: relative;
+    padding: 5px 0;
+    transition: color 0.3s ease;
+  }
+  
+  .nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #4361ee;
+    transition: width 0.3s ease;
+  }
+  
+  .nav-link:hover {
+    color: #4361ee;
+  }
+  
+  .nav-link:hover::before {
+    width: 100%;
+  }
+  
+  @media screen and (max-width: 768px) {
     .header {
-        padding: 10px 5%;
+      flex-direction: column;
+      padding: 20px 5%;
     }
-}
+    
+    .nav-list {
+      margin-top: 20px;
+    }
+    
+    .nav-item {
+      margin-left: 15px;
+      margin-right: 15px;
+    }
+  }

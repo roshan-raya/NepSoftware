@@ -1,37 +1,20 @@
-/* 
- * Colleges Section Styles
- * This file contains styles for the colleges section of the website,
- * including college cards, icons, and hover effects.
- * Each college is represented by a card with an icon and information.
- */
-
-/* Main Colleges Section Container
- * Provides spacing and background for the entire colleges section
- */
+/* Colleges Section */
 .colleges {
     padding: 100px 5%;
     background-color: #f0f4ff;
     position: relative;
-}
-
-/* Colleges Grid Layout Container
- * Flexbox grid for responsive card layout
- * Centers content and allows wrapping
- */
-.colleges-container {
+  }
+  
+  .colleges-container {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     gap: 30px;
     max-width: 1200px;
     margin: 0 auto;
-}
-
-/* Individual College Card
- * Card-style layout for each college
- * Includes shadow and hover animation
- */
-.college {
+  }
+  
+  .college {
     background: white;
     border-radius: 10px;
     padding: 30px;
@@ -39,22 +22,14 @@
     text-align: center;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* College Card Hover Effect
- * Lifts card and increases shadow on hover
- * Creates a floating effect
- */
-.college:hover {
+  }
+  
+  .college:hover {
     transform: translateY(-10px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-}
-
-/* College Icon Container
- * Circular container for college icons
- * Includes border and background styling
- */
-.college-icon {
+  }
+  
+  .college-icon {
     width: 100px;
     height: 100px;
     border-radius: 50%;
@@ -63,13 +38,9 @@
     position: relative;
     overflow: hidden;
     border: 3px solid #4361ee;
-}
-
-/* College Icon Background
- * Base styles for the icon background
- * Sets up transition for hover effect
- */
-.college-icon::before {
+  }
+  
+  .college-icon::before {
     content: '';
     position: absolute;
     top: 0;
@@ -79,63 +50,35 @@
     background-position: center;
     background-size: cover;
     transition: transform 0.5s ease;
-}
-
-/* College Icon Hover Animation
- * Scales up the icon background on hover
- * Creates a zoom effect
- */
-.college-icon:hover::before {
+  }
+  
+  .college-icon:hover::before {
     transform: scale(1.1);
-}
-
-/* Whitelands College Icon
- * Custom SVG background for Whitelands College
- * Uses college initials in brand color
- */
-.whitelands::before {
+  }
+  
+  .whitelands::before {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%234361ee" opacity="0.2"/><text x="50" y="55" font-family="Arial" font-size="30" font-weight="bold" text-anchor="middle" fill="%234361ee">WC</text></svg>');
-}
-
-/* Southlands College Icon
- * Custom SVG background for Southlands College
- * Uses college initials in brand color
- */
-.southlands::before {
+  }
+  
+  .southlands::before {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%234361ee" opacity="0.2"/><text x="50" y="55" font-family="Arial" font-size="30" font-weight="bold" text-anchor="middle" fill="%234361ee">SC</text></svg>');
-}
-
-/* Digby Stuart College Icon
- * Custom SVG background for Digby Stuart College
- * Uses college initials in brand color
- */
-.digby::before {
+  }
+  
+  .digby::before {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%234361ee" opacity="0.2"/><text x="50" y="55" font-family="Arial" font-size="30" font-weight="bold" text-anchor="middle" fill="%234361ee">DSC</text></svg>');
-}
-
-/* Froebel College Icon
- * Custom SVG background for Froebel College
- * Uses college initials in brand color
- */
-.froebel::before {
+  }
+  
+  .froebel::before {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%234361ee" opacity="0.2"/><text x="50" y="55" font-family="Arial" font-size="30" font-weight="bold" text-anchor="middle" fill="%234361ee">FC</text></svg>');
-}
-
-/* College Name Typography
- * Styles for college names
- * Uses larger font size and dark color for emphasis
- */
-.college-name {
+  }
+  
+  .college-name {
     font-size: 1.3rem;
     margin-bottom: 10px;
     color: #333;
-}
-
-/* College Information Text
- * Styles for additional college information
- * Uses muted color and smaller font size
- */
-.college-info {
+  }
+  
+  .college-info {
     color: #666;
     font-size: 0.9rem;
-}
+  }
