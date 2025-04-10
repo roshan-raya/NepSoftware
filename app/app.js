@@ -52,6 +52,7 @@ app.use((req, res, next) => {
 const userRoutes = require('./routes/userRoutes');
 const rideRoutes = require('./routes/rideRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const { isAuthenticated } = require('./middleware/auth');
 
 // Get the functions in the db.js file to use
@@ -192,6 +193,8 @@ app.use("/users", userRoutes);
 app.use("/rides", isAuthenticated, rideRoutes);
 // Apply authentication middleware to review routes
 app.use("/reviews", isAuthenticated, reviewRoutes);
+// Apply authentication middleware to payment routes
+app.use("/payment", isAuthenticated, paymentRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {

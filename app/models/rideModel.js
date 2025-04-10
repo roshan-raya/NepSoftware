@@ -142,7 +142,8 @@ class RideModel {
 
     static async getRideRequests(rideId) {
         const sql = `
-            SELECT rr.*, u.name AS passenger_name, u.profile_photo
+            SELECT rr.*, u.name AS passenger_name, u.profile_photo, 
+                   rr.payment_status, rr.fare
             FROM Ride_Requests rr
             JOIN Users u ON rr.passenger_id = u.id
             WHERE rr.ride_id = ?
@@ -196,7 +197,7 @@ class RideModel {
     }
 
     static async updateRequestStatus(requestId, status) {
-        const sql = 'UPDATE Ride_Requests SET status = ? WHERE id = ?';
+        const sql = 'UPDATE Ride_Requests SET status = ?, updated_at = NOW() WHERE id = ?';
         return await db.query(sql, [status, requestId]);
     }
 
@@ -471,6 +472,89 @@ class RideModel {
         return await db.query(sql, [status, rideId]);
     }
     
+    // Update ride request fare
+    static async updateRideRequestFare(requestId, fare) {
+        const sql = 'UPDATE Ride_Requests SET fare = ? WHERE id = ?';
+        return await db.query(sql, [fare, requestId]);
+    }
+    
+    // Update ride request payment status
+    static async updateRideRequestPaymentStatus(requestId, paymentStatus) {
+        const sql = 'UPDATE Ride_Requests SET payment_status = ? WHERE id = ?';
+        return await db.query(sql, [paymentStatus, requestId]);
+    }
+    
+    // Get ride request by ID with detailed information
+    static async getRideRequestById(requestId) {
+        const sql = `
+            SELECT rr.*, 
+                   r.driver_id, 
+                   r.departure_time, 
+                   r.pickup_location, 
+                   r.destination,
+                   r.pickup_lat,
+                   r.pickup_lng,
+                   r.destination_lat,
+                   r.destination_lng,
+                   r.category,
+                   u.name as passenger_name,
+                   d.name as driver_name
+            FROM Ride_Requests rr
+            JOIN Rides r ON rr.ride_id = r.id
+            JOIN Users u ON rr.passenger_id = u.id
+            JOIN Users d ON r.driver_id = d.id
+            WHERE rr.id = ?
+        `;
+        
+        const [request] = await db.query(sql, [requestId]);
+        return request;
+    }
+    
+    // Get accepted ride requests that require payment
+    static async getAcceptedRequestsRequiringPayment(passengerId) {
+        const sql = `
+            SELECT rr.*, 
+                   r.driver_id, 
+                   r.departure_time, 
+                   r.pickup_location, 
+                   r.destination,
+                   r.category,
+                   u.name as driver_name
+            FROM Ride_Requests rr
+            JOIN Rides r ON rr.ride_id = r.id
+            JOIN Users u ON r.driver_id = u.id
+            WHERE rr.passenger_id = ? 
+            AND rr.status = 'accepted' 
+            AND (rr.payment_status IS NULL OR rr.payment_status = 'pending')
+        `;
+        
+        return await db.query(sql, [passengerId]);
+    }
+    
+    // Get all ride requests by driver with payment status
+    static async getRideRequestsByDriverWithPayment(driverId) {
+        const sql = `
+            SELECT rr.*,
+                   r.departure_time,
+                   r.pickup_location,
+                   r.destination,
+                   r.category,
+                   u.name as passenger_name,
+                   u.profile_photo,
+                   COALESCE(p.status, 'none') as payment_status,
+                   p.amount as payment_amount,
+                   p.created_at as payment_date
+            FROM Ride_Requests rr
+            JOIN Rides r ON rr.ride_id = r.id
+            JOIN Users u ON rr.passenger_id = u.id
+            LEFT JOIN Payments p ON rr.id = p.request_id
+            WHERE r.driver_id = ?
+            ORDER BY r.departure_time DESC, rr.requested_at DESC
+        `;
+        
+        return await db.query(sql, [driverId]);
+    }
+
     static async updateRide(rideId, {
         departureDatetime,
         pickupLocation,
@@ -593,6 +677,12 @@ class RideModel {
             console.error('Error details:', error.stack);
             throw error;
         }
+    }
+
+    // Accept a ride request
+    static async acceptRideRequest(requestId) {
+        const sql = 'UPDATE Ride_Requests SET status = "accepted", updated_at = NOW() WHERE id = ?';
+        return await db.query(sql, [requestId]);
     }
 }
 

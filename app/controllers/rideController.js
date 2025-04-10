@@ -342,7 +342,7 @@ class RideController {
         try {
             const rideId = parseInt(req.params.rideId, 10);
             const requestId = parseInt(req.params.requestId, 10);
-            const currentUserId = req.session.userId;
+            const userId = req.session.userId;
             
             // Get ride details to verify the current user is the driver
             const ride = await RideModel.getRideById(rideId);
@@ -353,16 +353,17 @@ class RideController {
             }
             
             // Verify current user is the driver
-            if (ride.driver_id !== currentUserId) {
+            if (ride.driver_id !== userId) {
                 return res.status(403).send("Only the driver can accept ride requests");
             }
             
-            // Update the request status
-            await RideModel.updateRequestStatus(requestId, "accepted");
+            // Accept the request
+            await RideModel.acceptRideRequest(requestId);
             
-            // Decrease available seats
+            // Update available seats
             await RideModel.updateRideSeats(rideId);
             
+            // Redirect back to the ride detail page
             res.redirect(`/rides/${rideId}`);
         } catch (error) {
             console.error(error);

@@ -164,6 +164,48 @@ block content
                       a.btn.btn-outline-primary.btn-sm(href=`/reviews/user/${ride.driver_id}?type=driver`)
                         i.fas.fa-external-link-alt.me-1
                         | See All Reviews
+              
+              // Passenger's Accepted Request Section
+              if userId && userId != ride.driver_id && requests && requests.length > 0
+                hr.my-4
+                .passenger-requests.mt-4
+                  h4.mb-3
+                    i.fas.fa-receipt.text-success.me-2
+                    | Your Ride Status
+                  each request in requests
+                    if request.passenger_id == userId
+                      .card.mb-3
+                        .card-body
+                          .d-flex.justify-content-between.align-items-center
+                            .request-info
+                              h5.card-title 
+                                if request.status === 'pending'
+                                  span.badge.bg-warning.me-2 Pending
+                                else if request.status === 'accepted'
+                                  span.badge.bg-success.me-2 Accepted
+                                else if request.status === 'rejected'
+                                  span.badge.bg-danger.me-2 Rejected
+                                else
+                                  span.badge.bg-secondary.me-2 #{request.status}
+                                | Your Request
+                              p.card-text.mb-1
+                                small.text-muted Submitted: #{new Date(request.requested_at).toLocaleString()}
+                              if request.driver_reply
+                                .message-box.bg-light.p-2.rounded.mt-2
+                                  small.text-muted
+                                    i.fas.fa-reply.me-1
+                                    | Driver's Reply:
+                                  p.mb-0.small #{request.driver_reply}
+                            // Payment Button - show only for accepted requests
+                            if request.status === 'accepted'
+                              if !request.payment_status || request.payment_status === 'pending'
+                                a.btn.btn-success(href=`/payment/rides/${ride.id}/requests/${request.id}/pay`)
+                                  i.fas.fa-credit-card.me-1
+                                  | Make Payment
+                              else if request.payment_status === 'paid'
+                                span.badge.bg-success.fs-6
+                                  i.fas.fa-check-circle.me-1
+                                  | Payment Complete
         
         // Request to Join Card
         .col-lg-4

@@ -1,0 +1,125 @@
+extends layout
+
+block content
+  .container.py-4
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow-sm.mb-4
+          .card-header.bg-success.text-white.py-3
+            h2.mb-0
+              i.fas.fa-receipt.me-2
+              | Payment Receipt
+          
+          .card-body.p-4
+            // Success message
+            .alert.alert-success.mb-4
+              i.fas.fa-check-circle.me-2.fa-lg
+              span.fw-bold Payment Successful!
+              p.mb-0.mt-2 Your payment has been processed successfully. Thank you for using our ride sharing service.
+            
+            // Receipt details
+            .receipt-details.mb-4
+              h4.mb-3 Receipt Details
+              
+              .table-responsive
+                table.table.table-bordered
+                  tbody
+                    tr
+                      th.bg-light(width='30%') Receipt #
+                      td #{payment.id}
+                    tr
+                      th.bg-light Payment Date
+                      td #{new Date(payment.created_at).toLocaleString()}
+                    tr
+                      th.bg-light Amount Paid
+                      td.fw-bold £#{parseFloat(payment.amount).toFixed(2)}
+                    tr
+                      th.bg-light Payment Method
+                      td
+                        case payment.payment_method
+                          when 'credit_card'
+                            i.fas.fa-credit-card.me-2.text-primary
+                            | Credit/Debit Card
+                          when 'paypal'
+                            i.fab.fa-paypal.me-2.text-primary
+                            | PayPal
+                          when 'cash'
+                            i.fas.fa-money-bill-wave.me-2.text-success
+                            | Cash
+                          when 'bank_transfer'
+                            i.fas.fa-university.me-2.text-primary
+                            | Bank Transfer
+                          default
+                            | #{payment.payment_method}
+                    tr
+                      th.bg-light Status
+                      td
+                        span.badge.bg-success
+                          i.fas.fa-check-circle.me-1
+                          | #{payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+            
+            // Ride details
+            .ride-details.mb-4
+              h4.mb-3 Ride Details
+              
+              .table-responsive
+                table.table.table-bordered
+                  tbody
+                    tr
+                      th.bg-light(width='30%') Pickup
+                      td #{ride.pickup_location}
+                    tr
+                      th.bg-light Destination
+                      td #{ride.destination}
+                    tr
+                      th.bg-light Departure
+                      td #{new Date(ride.departure_time).toLocaleString()}
+                    tr
+                      th.bg-light Category
+                      td #{ride.category}
+            
+            // Passenger and Driver details
+            .user-details.mb-4
+              h4.mb-3 Person Details
+              
+              .row
+                .col-md-6
+                  .card.mb-3
+                    .card-header.bg-light
+                      h5.mb-0
+                        i.fas.fa-user.me-2.text-primary
+                        | Passenger
+                    .card-body
+                      p.mb-0 #{payment.passenger_name}
+                
+                .col-md-6
+                  .card.mb-3
+                    .card-header.bg-light
+                      h5.mb-0
+                        i.fas.fa-car.me-2.text-primary
+                        | Driver
+                    .card-body
+                      p.mb-0 #{payment.driver_name}
+            
+            // Action buttons
+            .d-grid.gap-2
+              a.btn.btn-primary(href=`/rides`)
+                i.fas.fa-car.me-2
+                | View Rides
+              
+              a.btn.btn-outline-secondary.mt-2(href='/payment/history')
+                i.fas.fa-history.me-2
+                | View Payment History
+              
+              button.btn.btn-outline-dark.mt-2#printReceipt(type='button')
+                i.fas.fa-print.me-2
+                | Print Receipt
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Print receipt functionality
+      document.getElementById('printReceipt').addEventListener('click', function() {
+        window.print();
+      });
+    }); 

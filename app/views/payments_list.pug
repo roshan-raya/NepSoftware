@@ -1,0 +1,142 @@
+extends layout
+
+block content
+  .container.py-4
+    h1.mb-4
+      i.fas.fa-history.me-2
+      | Payment History
+    
+    if payments && payments.length > 0
+      .card.shadow-sm.mb-4
+        .card-header.bg-white.py-3
+          .d-flex.justify-content-between.align-items-center
+            h3.mb-0 Your Payments
+            .btn-group
+              button.btn.btn-outline-primary.active#all-tab All
+              button.btn.btn-outline-primary#as-passenger-tab As Passenger
+              button.btn.btn-outline-primary#as-driver-tab As Driver
+        
+        .card-body.p-0
+          .table-responsive
+            table.table.mb-0
+              thead.bg-light
+                tr
+                  th Date
+                  th Ride
+                  th Amount
+                  th Method
+                  th Role
+                  th Status
+                  th Actions
+              tbody
+                each payment in payments
+                  tr(class=payment.role === 'passenger' ? 'payment-passenger' : 'payment-driver')
+                    td.align-middle #{new Date(payment.created_at).toLocaleDateString()}
+                    td.align-middle
+                      .d-flex.flex-column
+                        small
+                          i.fas.fa-map-marker-alt.text-danger.me-1
+                          | #{payment.pickup_location}
+                        small
+                          i.fas.fa-flag-checkered.text-success.me-1
+                          | #{payment.destination}
+                    td.align-middle.fw-bold £#{payment.amount.toFixed(2)}
+                    td.align-middle
+                      case payment.payment_method
+                        when 'credit_card'
+                          i.fas.fa-credit-card.text-primary.me-1
+                          | Card
+                        when 'paypal'
+                          i.fab.fa-paypal.text-primary.me-1
+                          | PayPal
+                        when 'cash'
+                          i.fas.fa-money-bill-wave.text-success.me-1
+                          | Cash
+                        when 'bank_transfer'
+                          i.fas.fa-university.text-primary.me-1
+                          | Bank
+                        default
+                          | #{payment.payment_method}
+                    td.align-middle
+                      if payment.role === 'passenger'
+                        span.badge.bg-info
+                          i.fas.fa-user.me-1
+                          | Passenger
+                      else
+                        span.badge.bg-secondary
+                          i.fas.fa-car.me-1
+                          | Driver
+                    td.align-middle
+                      case payment.status
+                        when 'completed'
+                          span.badge.bg-success
+                            i.fas.fa-check-circle.me-1
+                            | Completed
+                        when 'pending'
+                          span.badge.bg-warning.text-dark
+                            i.fas.fa-clock.me-1
+                            | Pending
+                        when 'failed'
+                          span.badge.bg-danger
+                            i.fas.fa-times-circle.me-1
+                            | Failed
+                        when 'refunded'
+                          span.badge.bg-info
+                            i.fas.fa-undo.me-1
+                            | Refunded
+                        default
+                          span.badge.bg-secondary #{payment.status}
+                    td.align-middle
+                      a.btn.btn-sm.btn-outline-primary(href=`/payment/${payment.id}/receipt`)
+                        i.fas.fa-receipt.me-1
+                        | Receipt
+    else
+      .alert.alert-info
+        i.fas.fa-info-circle.me-2
+        | You don't have any payment records yet.
+    
+    .mt-4
+      a.btn.btn-primary(href='/rides')
+        i.fas.fa-arrow-left.me-2
+        | Back to Rides
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Filter payments by role
+      const allTab = document.getElementById('all-tab');
+      const passengerTab = document.getElementById('as-passenger-tab');
+      const driverTab = document.getElementById('as-driver-tab');
+      
+      const passengerRows = document.querySelectorAll('.payment-passenger');
+      const driverRows = document.querySelectorAll('.payment-driver');
+      
+      if (allTab && passengerTab && driverTab) {
+        allTab.addEventListener('click', function() {
+          this.classList.add('active');
+          passengerTab.classList.remove('active');
+          driverTab.classList.remove('active');
+          
+          passengerRows.forEach(row => row.style.display = '');
+          driverRows.forEach(row => row.style.display = '');
+        });
+        
+        passengerTab.addEventListener('click', function() {
+          this.classList.add('active');
+          allTab.classList.remove('active');
+          driverTab.classList.remove('active');
+          
+          passengerRows.forEach(row => row.style.display = '');
+          driverRows.forEach(row => row.style.display = 'none');
+        });
+        
+        driverTab.addEventListener('click', function() {
+          this.classList.add('active');
+          allTab.classList.remove('active');
+          passengerTab.classList.remove('active');
+          
+          passengerRows.forEach(row => row.style.display = 'none');
+          driverRows.forEach(row => row.style.display = '');
+        });
+      }
+    }); 

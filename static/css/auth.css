@@ -1,228 +1,194 @@
-/* 
- * Authentication Modal Styles
- * This file contains all styles related to the authentication modal,
- * including login, registration, and profile photo upload functionality
- */
-
-/* Modal Container Styles */
+/* Auth Styles */
 .auth-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Active Modal State */
 .auth-modal.active {
-    display: flex;
+  display: flex;
 }
 
-/* Authentication Container Styles */
 .auth-container {
-    background-color: white;
-    border-radius: 10px;
-    padding: 30px;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-    position: relative;
+  background-color: white;
+  border-radius: 10px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
 }
 
-/* Close Button Styles */
 .auth-close {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
-    background: none;
-    border: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  background: none;
+  border: none;
 }
 
-/* Close Button Hover Effect */
 .auth-close:hover {
-    color: #4361ee;
+  color: #4361ee;
 }
 
-/* Tab Navigation Styles */
 .auth-tabs {
-    display: flex;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #eee;
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
 }
 
-/* Individual Tab Styles */
 .auth-tab {
-    flex: 1;
-    padding: 10px 0;
-    text-align: center;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-/* Active Tab State */
 .auth-tab.active {
-    color: #4361ee;
-    border-bottom: 2px solid #4361ee;
+  color: #4361ee;
+  border-bottom: 2px solid #4361ee;
 }
 
-/* Form Container Styles */
 .auth-form {
-    display: none;
+  display: none;
 }
 
-/* Active Form State */
 .auth-form.active {
-    display: block;
+  display: block;
 }
 
-/* Form Group Styles */
 .form-group {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
-/* Form Label Styles */
 .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #555;
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #555;
 }
 
-/* Input Field Styles */
 .form-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
 }
 
-/* Input Focus State */
 .form-group input:focus {
-    border-color: #4361ee;
-    outline: none;
+  border-color: #4361ee;
+  outline: none;
 }
 
-/* Authentication Button Styles */
 .auth-btn {
-    width: 100%;
-    background-color: #4361ee;
-    color: white;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  width: 100%;
+  background-color: #4361ee;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-/* Button Hover Effect */
 .auth-btn:hover {
-    background-color: #3a56d4;
+  background-color: #3a56d4;
 }
 
-/* Forgot Password Link Container */
 .auth-forgot {
-    text-align: center;
-    margin-top: 15px;
+  text-align: center;
+  margin-top: 15px;
 }
 
-/* Forgot Password Link Styles */
 .auth-forgot a {
-    color: #4361ee;
-    text-decoration: none;
+  color: #4361ee;
+  text-decoration: none;
 }
 
-/* Forgot Password Link Hover Effect */
 .auth-forgot a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
-/* Profile Photo Container Styles */
 .auth-form .profile-photo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    margin: 15px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
 }
 
-/* Profile Photo Wrapper Styles */
 .auth-form .profile-photo-wrapper {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    overflow: hidden;
-    cursor: pointer;
-    border: 2px solid #ddd;
-    transition: all 0.3s ease;
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid #ddd;
+  transition: all 0.3s ease;
 }
 
-/* Profile Photo Hover Effect */
 .auth-form .profile-photo-wrapper:hover {
-    border-color: #4361ee;
-    transform: scale(1.05);
+  border-color: #4361ee;
+  transform: scale(1.05);
 }
 
-/* Profile Photo Image Styles */
 .auth-form .profile-photo-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Edit Overlay Styles (for profile photo) */
 .auth-form .edit-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Edit Overlay Hover Effect */
 .auth-form .profile-photo-wrapper:hover .edit-overlay {
-    opacity: 1;
+  opacity: 1;
 }
 
-/* Edit Icon Styles */
 .auth-form .edit-overlay i {
-    color: white;
-    font-size: 24px;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 8px;
-    border-radius: 50%;
+  color: white;
+  font-size: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px;
+  border-radius: 50%;
 }
 
-/* Photo Upload Hint Text */
 .auth-form .photo-hint {
-    font-size: 12px;
-    color: #666;
-    text-align: center;
-    margin-top: 5px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  margin-top: 5px;
 }
 
-/* Muted Text Styles */
 .auth-form .text-muted {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-    display: block;
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  display: block;
 }
-  
